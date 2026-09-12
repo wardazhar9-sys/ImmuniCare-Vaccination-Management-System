@@ -1,0 +1,28 @@
+<svg width="260" height="72" viewBox="0 0 260 72" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+    <title id="title">ImmuniCare Parent Portal</title>
+    <desc id="desc">ImmuniCare parent portal logo for dashboard sidebar.</desc>
+    <defs>
+        <linearGradient id="sidebarBlue" x1="5" y1="10" x2="63" y2="68" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#A8DCFF"/>
+            <stop offset="1" stop-color="#2EA7FF"/>
+        </linearGradient>
+        <linearGradient id="sidebarWord" x1="125" y1="33" x2="225" y2="33" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#F8FBFF"/>
+            <stop offset="1" stop-color="#3BAAFF"/>
+        </linearGradient>
+    </defs>
+
+    <path d="M35 7L62 19V35C62 52 51.6 64 35 69C18.4 64 8 52 8 35V19L35 7Z" stroke="url(#sidebarBlue)" stroke-width="5.5" stroke-linejoin="round"/>
+    <path d="M35 22C30.4 22 26.8 25.6 26.8 30.2C26.8 34.8 30.4 38.4 35 38.4C39.6 38.4 43.2 34.8 43.2 30.2C43.2 25.6 39.6 22 35 22Z" fill="#EAF6FF"/>
+    <path d="M25.4 45.2C28 40.7 32.8 38.5 38 39.4C44.7 40.5 48.7 46.3 49.4 53.3C45.7 57.7 41 61 35 63.1C28.5 60.8 23.5 57.1 19.6 52.5C20.7 49.5 22.6 47 25.4 45.2Z" fill="#EAF6FF"/>
+    <circle cx="23" cy="38.2" r="5.6" fill="#EAF6FF"/>
+    <path d="M51 22.6V32.8M45.9 27.7H56.1" stroke="#69C7FF" stroke-width="3.4" stroke-linecap="round"/>
+    <g transform="rotate(16 60 39)">
+        <rect x="54.7" y="20" width="11" height="35" rx="3.4" fill="#0B1F3A" stroke="#EAF6FF" stroke-width="2.5"/>
+        <path d="M60.2 14.3V20M60.2 55V63.2" stroke="#EAF6FF" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M55.2 28H61M55.2 36H61M55.2 44H61" stroke="#69C7FF" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+
+    <text x="77" y="39" fill="url(#sidebarWord)" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="800">ImmuniCare</text>
+    <text x="79" y="58" fill="#A7B5C7" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="500" letter-spacing="2">Parent Portal</text>
+</svg>
