@@ -52,6 +52,50 @@ $completed_result = mysqli_query($conn, $completed_query);
 $completed_data = mysqli_fetch_assoc($completed_result);
 
 $completed_vaccinations = $completed_data["completed_vaccinations"];
+
+
+$total_scheduled_query = "SELECT COUNT(*) AS total_scheduled
+                          FROM vaccination_schedules vs
+                          INNER JOIN children c ON vs.child_id = c.id
+                          WHERE c.parent_id = '$parent_id'";
+
+$total_scheduled_result = mysqli_query($conn, $total_scheduled_query);
+$total_scheduled_data = mysqli_fetch_assoc($total_scheduled_result);
+
+$total_scheduled = $total_scheduled_data["total_scheduled"];
+
+if ($total_scheduled > 0) {
+    $vaccination_progress = round(($completed_vaccinations / $total_scheduled) * 100);
+} else {
+    $vaccination_progress = 0;
+}
+
+
+$upcoming_vaccination_query = "SELECT 
+                                c.child_name,
+                                v.vaccine_name,
+                                vs.scheduled_date,
+                                vs.scheduled_time
+                               FROM vaccination_schedules vs
+                               INNER JOIN children c ON vs.child_id = c.id
+                               INNER JOIN vaccines v ON vs.vaccine_id = v.id
+                               WHERE c.parent_id = '$parent_id'
+                               AND vs.scheduled_date >= CURDATE()
+                               AND vs.status = 'Scheduled'
+                               ORDER BY vs.scheduled_date ASC, vs.scheduled_time ASC
+                               LIMIT 1";
+
+$upcoming_vaccination_result = mysqli_query($conn, $upcoming_vaccination_query);
+
+$upcoming_vaccination = mysqli_fetch_assoc($upcoming_vaccination_result);
+
+if ($upcoming_vaccination) {
+    $upcoming_child_name = $upcoming_vaccination["child_name"];
+    $upcoming_vaccine_name = $upcoming_vaccination["vaccine_name"];
+    $upcoming_date = $upcoming_vaccination["scheduled_date"];
+    $upcoming_time = $upcoming_vaccination["scheduled_time"];
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -309,7 +353,7 @@ $completed_vaccinations = $completed_data["completed_vaccinations"];
                             </span>
 
                             <strong class="stat-number">
-                                0
+                                <?php echo $completed_vaccinations; ?>
                             </strong>
 
                             <span class="stat-description">
@@ -359,7 +403,7 @@ $completed_vaccinations = $completed_data["completed_vaccinations"];
                             </span>
 
                             <strong class="stat-number">
-                                0%
+                              <?php echo $vaccination_progress; ?>%
                             </strong>
 
                             <span class="stat-description">
@@ -380,7 +424,54 @@ $completed_vaccinations = $completed_data["completed_vaccinations"];
 
                     <!-- UPCOMING VACCINATION -->
 
-                    <div class="dashboard-card upcoming-card">
+                    <?php if ($upcoming_vaccination): ?>
+
+    <div class="upcoming-vaccination-details">
+
+        <h4><?php echo htmlspecialchars($upcoming_child_name); ?></h4>
+
+        <p>
+            <?php echo htmlspecialchars($upcoming_vaccine_name); ?>
+        </p>
+
+        <p>
+            Date: <?php echo htmlspecialchars($upcoming_date); ?>
+        </p>
+
+        <p>
+            Time: <?php echo htmlspecialchars($upcoming_time); ?>
+        </p>
+
+        <a href="schedule.php" class="dashboard-primary-btn">
+            View Schedule
+        </a>
+
+    </div>
+
+<?php else: ?>
+
+    <div class="empty-dashboard-state">
+
+        <div class="empty-state-icon">
+            ▣
+        </div>
+
+        <h4>No upcoming vaccinations</h4>
+
+        <p>
+            Your upcoming vaccination appointments
+            will appear here.
+        </p>
+
+        <a href="book_appointment.php" class="dashboard-primary-btn">
+            Book an Appointment
+        </a>
+
+    </div>
+
+<?php endif; ?>
+
+                    <!-- <div class="dashboard-card upcoming-card">
 
                         <div class="card-header">
 
@@ -415,7 +506,7 @@ $completed_vaccinations = $completed_data["completed_vaccinations"];
 
                         </div>
 
-                    </div>
+                    </div> -->
 
 
                     <!-- QUICK ACTIONS -->
