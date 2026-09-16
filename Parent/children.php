@@ -4,12 +4,93 @@ session_start();
 
 include("../config/db.php");
 
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "parent") {
+// Check whether user is logged in
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+// Check whether the logged-in user is a parent
+if ($_SESSION["role"] !== "parent") {
     header("Location: ../login.php");
     exit();
 }
 
 $parent_id = $_SESSION["user_id"];
+
+$message = "";
+$message_type = "";
+
+
+/* ==========================================
+   ADD CHILD
+========================================== */
+
+if (isset($_POST["add_child"])) {
+
+    $child_name = trim($_POST["child_name"]);
+    $date_of_birth = $_POST["date_of_birth"];
+    $gender = $_POST["gender"];
+    $blood_group = $_POST["blood_group"];
+    $address = trim($_POST["address"]);
+
+    // Check if all fields are filled
+    if (
+        empty($child_name) ||
+        empty($date_of_birth) ||
+        empty($gender) ||
+        empty($blood_group) ||
+        empty($address)
+    ) {
+
+        $message = "Please fill in all fields.";
+        $message_type = "error";
+
+    } else {
+
+        $query = "INSERT INTO children
+                  (parent_id, child_name, date_of_birth, gender, blood_group, address)
+                  VALUES (?, ?, ?, ?, ?, ?)";
+
+        $stmt = mysqli_prepare($conn, $query);
+
+        mysqli_stmt_bind_param(
+            $stmt,
+            "isssss",
+            $parent_id,
+            $child_name,
+            $date_of_birth,
+            $gender,
+            $blood_group,
+            $address
+        );
+
+     if (mysqli_stmt_execute($stmt)) {
+
+    $message = "Child registered successfully!";
+    $message_type = "success";
+
+    // Clear the form after successful registration
+    $child_name = "";
+    $date_of_birth = "";
+    $gender = "";
+    $blood_group = "";
+    $address = "";
+
+} else {
+
+    $message = "Something went wrong. Please try again.";
+    $message_type = "error";
+}
+
+        mysqli_stmt_close($stmt);
+    }
+}
+
+
+/* ==========================================
+   GET REGISTERED CHILDREN
+========================================== */
 
 $sql = "SELECT id, child_name, date_of_birth, gender, blood_group, address
         FROM children
@@ -487,6 +568,234 @@ $result = mysqli_query($conn, $sql);
 
         }
 
+        /* ==============================
+   ADD CHILD MODAL
+============================== */
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.child-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.child-modal.show {
+    display: flex;
+}
+
+.child-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(11, 31, 58, 0.60);
+    backdrop-filter: blur(4px);
+}
+
+.child-modal-content {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(11, 31, 58, 0.25);
+    z-index: 2;
+    animation: modalSlideIn 0.25s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* MODAL HEADER */
+
+.child-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.child-modal-header h2 {
+    margin: 0;
+    color: #0B1F3A;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.child-modal-header p {
+    margin: 6px 0 0;
+    color: #64748B;
+    font-size: 14px;
+}
+
+.child-modal-close {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #F1F5F9;
+    color: #64748B;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+    transition: 0.2s ease;
+    flex-shrink: 0;
+}
+
+.child-modal-close:hover {
+    background: #E2E8F0;
+    color: #0B1F3A;
+}
+
+
+/* FORM */
+
+.add-child-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.add-child-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-child-form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.add-child-form-group label {
+    margin-bottom: 8px;
+    color: #0F172A;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.add-child-form-group input,
+.add-child-form-group select,
+.add-child-form-group textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s ease;
+}
+
+.add-child-form-group input:focus,
+.add-child-form-group select:focus,
+.add-child-form-group textarea:focus {
+    border-color: #1E40AF;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.10);
+}
+
+.add-child-form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+
+/* SUBMIT BUTTON */
+
+.add-child-submit {
+    grid-column: 1 / -1;
+    width: 100%;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 11px;
+    background: #1E40AF;
+    color: #FFFFFF;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.add-child-submit:hover {
+    background: #0B1F3A;
+    transform: translateY(-1px);
+}
+
+
+/* MESSAGE */
+
+.modal-message {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.modal-message.success {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+}
+
+.modal-message.error {
+    background: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 650px) {
+
+    .child-modal {
+        padding: 12px;
+    }
+
+    .child-modal-content {
+        padding: 22px;
+        max-height: 92vh;
+    }
+
+    .add-child-form {
+        grid-template-columns: 1fr;
+    }
+
+    .add-child-form-group.full-width {
+        grid-column: auto;
+    }
+
+    .add-child-submit {
+        grid-column: auto;
+    }
+
+    .child-modal-header h2 {
+        font-size: 21px;
+    }
+}
     </style>
 
 </head>
@@ -540,22 +849,22 @@ $result = mysqli_query($conn, $sql);
         </div>
 
 
-        <a href="add_child.php" class="add-child-btn">
+        <button type="button" class="add-child-btn" onclick="openAddChildModal()">
 
-            <!-- Plus Icon -->
-            <svg viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor"
-                 stroke-width="2.5"
-                 stroke-linecap="round">
+    <!-- Plus Icon -->
+    <svg viewBox="0 0 24 24" fill="none"
+         stroke="currentColor"
+         stroke-width="2.5"
+         stroke-linecap="round">
 
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
 
-            </svg>
+    </svg>
 
-            Add New Child
+    Add New Child
 
-        </a>
+</button>
 
     </div>
 
@@ -644,27 +953,15 @@ $result = mysqli_query($conn, $sql);
 </a>
 
 
-                        <button type="button" class="action-btn delete-btn">
+<form method="POST" action="delete_child.php" style="display: inline;">
+    <input type="hidden" name="child_id" value="<?php echo $row['id']; ?>">
 
-                            <!-- Delete Icon -->
-                            <svg viewBox="0 0 24 24"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="2"
-                                 stroke-linecap="round"
-                                 stroke-linejoin="round">
-
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14H5V6"></path>
-                                <path d="M10 11v6"></path>
-                                <path d="M14 11v6"></path>
-                                <path d="M9 6V3h6v3"></path>
-
-                            </svg>
-
-                            Delete
-
-                        </button>
+    <button type="submit" class="action-btn delete-btn"
+            onclick="return confirm('Are you sure you want to delete this child?');">
+        <!-- your existing delete icon, if you have one -->
+        Delete
+    </button>
+</form>
 
                     </div>
 
@@ -877,9 +1174,22 @@ $result = mysqli_query($conn, $sql);
                 You haven't registered any children yet.
             </p>
 
-            <a href="add_child.php" class="add-child-btn">
-                + Add New Child
-            </a>
+            <button type="button" class="add-child-btn" onclick="openAddChildModal()">
+
+    <!-- Plus Icon -->
+    <svg viewBox="0 0 24 24" fill="none"
+         stroke="currentColor"
+         stroke-width="2.5"
+         stroke-linecap="round">
+
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+
+    </svg>
+
+    Add New Child
+
+</button>
 
         </div>
 
@@ -888,6 +1198,237 @@ $result = mysqli_query($conn, $sql);
 
 
 </div>
+
+<!-- ==========================================
+     ADD CHILD MODAL
+========================================== -->
+
+<div id="addChildModal" class="child-modal">
+
+    <div class="child-modal-overlay" onclick="closeAddChildModal()"></div>
+
+    <div class="child-modal-content">
+
+        <div class="child-modal-header">
+
+            <div>
+                <h2>Register Your Child</h2>
+
+                <p>
+                    Add your child's information to ImmuniCare
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="child-modal-close"
+                onclick="closeAddChildModal()"
+            >
+                &times;
+            </button>
+
+        </div>
+
+
+        <?php if ($message != ""): ?>
+
+            <div class="modal-message <?php echo $message_type; ?>">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+
+        <?php endif; ?>
+
+
+        <form method="POST" class="add-child-form">
+
+
+            <!-- CHILD NAME -->
+
+            <div class="add-child-form-group full-width">
+
+                <label>Child Name</label>
+
+                <input
+                    type="text"
+                    name="child_name"
+                    placeholder="Enter child's full name"
+                    value="<?php echo htmlspecialchars($child_name ?? ''); ?>"
+                    required
+                >
+
+            </div>
+
+
+            <!-- DATE OF BIRTH -->
+
+            <div class="add-child-form-group">
+
+                <label>Date of Birth</label>
+
+                <input
+                    type="date"
+                    name="date_of_birth"
+                    value="<?php echo htmlspecialchars($date_of_birth ?? ''); ?>"
+                    required
+                >
+
+            </div>
+
+
+            <!-- GENDER -->
+
+            <div class="add-child-form-group">
+
+                <label>Gender</label>
+
+                <select name="gender" required>
+
+                    <option value="">Select Gender</option>
+
+                    <option value="Male"
+                        <?php echo (($gender ?? '') == 'Male') ? 'selected' : ''; ?>>
+                        Male
+                    </option>
+
+                    <option value="Female"
+                        <?php echo (($gender ?? '') == 'Female') ? 'selected' : ''; ?>>
+                        Female
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- BLOOD GROUP -->
+
+            <div class="add-child-form-group">
+
+                <label>Blood Group</label>
+
+                <select name="blood_group" required>
+
+                    <option value="">Select Blood Group</option>
+
+                    <option value="A+"
+                        <?php echo (($blood_group ?? '') == 'A+') ? 'selected' : ''; ?>>
+                        A+
+                    </option>
+
+                    <option value="A-"
+                        <?php echo (($blood_group ?? '') == 'A-') ? 'selected' : ''; ?>>
+                        A-
+                    </option>
+
+                    <option value="B+"
+                        <?php echo (($blood_group ?? '') == 'B+') ? 'selected' : ''; ?>>
+                        B+
+                    </option>
+
+                    <option value="B-"
+                        <?php echo (($blood_group ?? '') == 'B-') ? 'selected' : ''; ?>>
+                        B-
+                    </option>
+
+                    <option value="AB+"
+                        <?php echo (($blood_group ?? '') == 'AB+') ? 'selected' : ''; ?>>
+                        AB+
+                    </option>
+
+                    <option value="AB-"
+                        <?php echo (($blood_group ?? '') == 'AB-') ? 'selected' : ''; ?>>
+                        AB-
+                    </option>
+
+                    <option value="O+"
+                        <?php echo (($blood_group ?? '') == 'O+') ? 'selected' : ''; ?>>
+                        O+
+                    </option>
+
+                    <option value="O-"
+                        <?php echo (($blood_group ?? '') == 'O-') ? 'selected' : ''; ?>>
+                        O-
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- ADDRESS -->
+
+            <div class="add-child-form-group full-width">
+
+                <label>Address</label>
+
+                <textarea
+                    name="address"
+                    placeholder="Enter child's address"
+                    rows="4"
+                    required
+                ><?php echo htmlspecialchars($address ?? ''); ?></textarea>
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <button
+                type="submit"
+                name="add_child"
+                class="add-child-submit"
+            >
+                Register Child
+            </button>
+
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function openAddChildModal() {
+
+    document.getElementById("addChildModal").classList.add("show");
+
+    document.body.classList.add("modal-open");
+}
+
+
+function closeAddChildModal() {
+
+    document.getElementById("addChildModal").classList.remove("show");
+
+    document.body.classList.remove("modal-open");
+}
+
+
+// Close modal with Escape key
+
+document.addEventListener("keydown", function(event) {
+
+    if (event.key === "Escape") {
+
+        closeAddChildModal();
+
+    }
+
+});
+
+
+<?php if ($message != ""): ?>
+
+    // Automatically open modal when there is a success/error message
+    openAddChildModal();
+
+<?php endif; ?>
+
+</script>
+
 
 </body>
 

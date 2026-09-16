@@ -18,6 +18,9 @@ if ($_SESSION["role"] !== "parent") {
 
 $parent_id = $_SESSION["user_id"];
 
+// Get vaccine selected from Vaccines page
+$selected_vaccine_id = isset($_GET["vaccine_id"]) ? (int)$_GET["vaccine_id"] : 0;
+
 
 /* =========================
    GET PARENT'S CHILDREN
@@ -106,87 +109,342 @@ if (isset($_POST["book_appointment"])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Appointment | ImmuniCare</title>
+
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
 
-<h1>Book Appointment</h1>
+<div class="parent-dashboard">
 
-<?php if ($message != ""): ?>
+    <!-- ================= SIDEBAR ================= -->
 
-    <p>
-        <?php echo htmlspecialchars($message); ?>
-    </p>
+    <aside class="dashboard-sidebar">
 
-<?php endif; ?>
+        <div class="sidebar-brand">
+            <img src="../assets/images/immunicare-logo-sidebar.svg"
+                 alt="ImmuniCare Parent Portal"
+                 class="sidebar-brand-image">
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <div class="nav-section-title">
+                MAIN MENU
+            </div>
+
+            <a href="dashboard.php" class="sidebar-link">
+                <span class="sidebar-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="children.php" class="sidebar-link">
+                <span class="sidebar-icon">♙</span>
+                <span>My Children</span>
+            </a>
+
+            <a href="vaccines.php" class="sidebar-link">
+                <span class="sidebar-icon">✚</span>
+                <span>Vaccines</span>
+            </a>
+
+            <a href="schedule.php" class="sidebar-link">
+                <span class="sidebar-icon">▣</span>
+                <span>Vaccination Schedule</span>
+            </a>
 
 
-<form method="POST">
+            <div class="nav-section-title dashboard-nav-spacing">
+                APPOINTMENTS
+            </div>
 
-    <!-- CHILD -->
-    <label>Select Child</label>
-    <select name="child_id" required>
-        <option value="">Select Child</option>
+            <a href="book_appointment.php" class="sidebar-link active">
+                <span class="sidebar-icon">＋</span>
+                <span>Book Appointment</span>
+            </a>
 
-        <?php while ($child = mysqli_fetch_assoc($children_result)): ?>
-            <option value="<?php echo $child["id"]; ?>">
-                <?php echo htmlspecialchars($child["child_name"]); ?>
-            </option>
-        <?php endwhile; ?>
+            <a href="bookings.php" class="sidebar-link">
+                <span class="sidebar-icon">▤</span>
+                <span>My Bookings</span>
+            </a>
 
-    </select>
 
-    <br><br>
+            <div class="nav-section-title dashboard-nav-spacing">
+                HEALTH RECORDS
+            </div>
 
-    <!-- VACCINE -->
-    <label>Select Vaccine</label>
-    <select name="vaccine_id" required>
-        <option value="">Select Vaccine</option>
+            <a href="vaccination_history.php" class="sidebar-link">
+                <span class="sidebar-icon">✓</span>
+                <span>Vaccination History</span>
+            </a>
 
-        <?php while ($vaccine = mysqli_fetch_assoc($vaccines_result)): ?>
-            <option value="<?php echo $vaccine["id"]; ?>">
-                <?php echo htmlspecialchars($vaccine["vaccine_name"]); ?>
-                - Dose <?php echo htmlspecialchars($vaccine["dose_number"]); ?>
-            </option>
-        <?php endwhile; ?>
+            <a href="profile.php" class="sidebar-link">
+                <span class="sidebar-icon">◯</span>
+                <span>My Profile</span>
+            </a>
 
-    </select>
+        </nav>
 
-    <br><br>
 
-    <!-- HOSPITAL -->
-    <label>Select Hospital</label>
-    <select name="hospital_id" required>
-        <option value="">Select Hospital</option>
+        <div class="sidebar-bottom">
 
-        <?php while ($hospital = mysqli_fetch_assoc($hospitals_result)): ?>
-            <option value="<?php echo $hospital["id"]; ?>">
-                <?php echo htmlspecialchars($hospital["hospital_name"]); ?>
-                - <?php echo htmlspecialchars($hospital["city"]); ?>
-            </option>
-        <?php endwhile; ?>
+            <a href="logout.php" class="logout-link">
+                <span class="sidebar-icon">↪</span>
+                <span>Logout</span>
+            </a>
 
-    </select>
+        </div>
 
-    <br><br>
+    </aside>
 
-    <!-- DATE -->
-    <label>Appointment Date</label>
-    <input type="date" name="booking_date" required>
 
-    <br><br>
+    <!-- ================= MAIN CONTENT ================= -->
 
-    <!-- TIME -->
-    <label>Appointment Time</label>
-    <input type="time" name="booking_time" required>
+    <main class="dashboard-main">
 
-    <br><br>
 
-    <button type="submit" name="book_appointment">
-        Book Appointment
-    </button>
+        <!-- ================= HEADER ================= -->
 
-</form>
+        <header class="dashboard-header">
+
+            <div class="header-page-title">
+
+                <h1>Book Appointment</h1>
+
+                <p>
+                    Schedule a vaccination appointment for your child
+                </p>
+
+            </div>
+
+
+            <div class="header-actions">
+
+                <button class="notification-button" type="button">
+                    <span>♢</span>
+                    <span class="notification-dot"></span>
+                </button>
+
+                <div class="header-divider"></div>
+
+
+                <div class="profile-mini">
+
+                    <div class="profile-avatar">
+                        <?php echo strtoupper(substr($_SESSION["name"], 0, 1)); ?>
+                    </div>
+
+                    <div class="profile-info">
+
+                        <strong>
+                            <?php echo htmlspecialchars($_SESSION["name"]); ?>
+                        </strong>
+
+                        <span>
+                            Parent Account
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ================= BOOKING CONTENT ================= -->
+
+        <section class="dashboard-content">
+
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Schedule an Appointment
+                    </h2>
+
+                    <p>
+                        Select your child, vaccine, hospital and preferred appointment time.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <?php if ($message != ""): ?>
+
+                <div class="appointment-message <?php echo $message_type; ?>">
+
+                    <?php echo htmlspecialchars($message); ?>
+
+                </div>
+
+            <?php endif; ?>
+
+
+            <div class="booking-card">
+
+                <form method="POST" class="booking-form">
+
+
+                    <!-- CHILD -->
+
+                    <div class="form-group">
+
+                        <label for="child_id">
+                            Select Child
+                        </label>
+
+                        <select name="child_id" id="child_id" required>
+
+                            <option value="">
+                                Select Child
+                            </option>
+
+                            <?php while ($child = mysqli_fetch_assoc($children_result)): ?>
+
+                                <option value="<?php echo $child["id"]; ?>">
+
+                                    <?php echo htmlspecialchars($child["child_name"]); ?>
+
+                                </option>
+
+                            <?php endwhile; ?>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- VACCINE -->
+
+                    <div class="form-group">
+
+                        <label for="vaccine_id">
+                            Select Vaccine
+                        </label>
+
+                        <select name="vaccine_id" id="vaccine_id" required>
+
+                            <option value="">
+                                Select Vaccine
+                            </option>
+
+                            <?php while ($vaccine = mysqli_fetch_assoc($vaccines_result)): ?>
+
+                                <option value="<?php echo $vaccine["id"]; ?>"
+                                    <?php echo ($vaccine["id"] == $selected_vaccine_id) ? "selected" : ""; ?>>
+
+                                    <?php echo htmlspecialchars($vaccine["vaccine_name"]); ?>
+                                    - Dose <?php echo htmlspecialchars($vaccine["dose_number"]); ?>
+
+                                </option>
+
+                            <?php endwhile; ?>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- HOSPITAL -->
+
+                    <div class="form-group">
+
+                        <label for="hospital_id">
+                            Select Hospital
+                        </label>
+
+                        <select name="hospital_id" id="hospital_id" required>
+
+                            <option value="">
+                                Select Hospital
+                            </option>
+
+                            <?php while ($hospital = mysqli_fetch_assoc($hospitals_result)): ?>
+
+                                <option value="<?php echo $hospital["id"]; ?>">
+
+                                    <?php echo htmlspecialchars($hospital["hospital_name"]); ?>
+                                    -
+                                    <?php echo htmlspecialchars($hospital["city"]); ?>
+
+                                </option>
+
+                            <?php endwhile; ?>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="form-group">
+
+                        <label for="booking_date">
+                            Appointment Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="booking_date"
+                            id="booking_date"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- TIME -->
+
+                    <div class="form-group">
+
+                        <label for="booking_time">
+                            Appointment Time
+                        </label>
+
+                        <input
+                            type="time"
+                            name="booking_time"
+                            id="booking_time"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- SUBMIT -->
+
+                    <div class="booking-form-actions">
+
+                        <button
+                            type="submit"
+                            name="book_appointment"
+                            class="dashboard-primary-btn"
+                        >
+                            Book Appointment
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+</div>
+
 
 </body>
 </html>
