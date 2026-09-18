@@ -1,0 +1,1014 @@
+<?php
+
+session_start();
+
+include("../config/db.php");
+
+
+// Check whether user is logged in
+if (!isset($_SESSION["user_id"])) {
+    header("Location: ../login.php");
+    exit();
+}
+
+
+// Check whether the logged-in user is a hospital
+if ($_SESSION["role"] !== "hospital") {
+    header("Location: ../login.php");
+    exit();
+}
+
+
+$name = $_SESSION["name"];
+$user_id = $_SESSION["user_id"];
+
+// Mark notifications as read
+if (isset($_POST["mark_notifications_read"])) {
+
+    $mark_read_query = "UPDATE notifications
+                        SET is_read = 1
+                        WHERE user_id = '$user_id'
+                        AND is_read = 0";
+
+    mysqli_query($conn, $mark_read_query);
+
+    exit();
+}
+
+/* =========================================================
+   GET HOSPITAL INFORMATION
+========================================================= */
+
+$hospital_query = "SELECT * FROM hospitals WHERE user_id = '$user_id'";
+
+$hospital_result = mysqli_query($conn, $hospital_query);
+
+$hospital_data = mysqli_fetch_assoc($hospital_result);
+
+
+if (!$hospital_data) {
+    die("Hospital profile not found.");
+}
+
+
+$hospital_id = $hospital_data["id"];
+$hospital_name = $hospital_data["hospital_name"];
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+// Get unread notification count
+$notification_count_query = "SELECT COUNT(*) AS unread_count
+                             FROM notifications
+                             WHERE user_id = '$user_id'
+                             AND is_read = 0";
+
+$notification_count_result = mysqli_query($conn, $notification_count_query);
+
+$notification_count_data = mysqli_fetch_assoc($notification_count_result);
+
+$unread_notifications = $notification_count_data["unread_count"];
+
+
+// Get recent notifications
+$notification_query = "SELECT id, title, message, type, is_read, created_at
+                       FROM notifications
+                       WHERE user_id = '$user_id'
+                       ORDER BY created_at DESC
+                       LIMIT 5";
+
+$notification_result = mysqli_query($conn, $notification_query);
+
+
+/* =========================================================
+   PENDING APPOINTMENTS
+========================================================= */
+
+$pending_query = "SELECT COUNT(*) AS total_pending
+                  FROM bookings
+                  WHERE hospital_id = '$hospital_id'
+                  AND status = 'Pending'";
+
+$pending_result = mysqli_query($conn, $pending_query);
+
+$pending_data = mysqli_fetch_assoc($pending_result);
+
+$total_pending = $pending_data["total_pending"];
+
+
+/* =========================================================
+   APPROVED APPOINTMENTS
+========================================================= */
+
+$approved_query = "SELECT COUNT(*) AS total_approved
+                   FROM bookings
+                   WHERE hospital_id = '$hospital_id'
+                   AND status = 'Approved'";
+
+$approved_result = mysqli_query($conn, $approved_query);
+
+$approved_data = mysqli_fetch_assoc($approved_result);
+
+$total_approved = $approved_data["total_approved"];
+
+
+/* =========================================================
+   TODAY'S APPOINTMENTS
+========================================================= */
+
+$today_query = "SELECT COUNT(*) AS total_today
+                FROM bookings
+                WHERE hospital_id = '$hospital_id'
+                AND booking_date = CURDATE()
+                AND status IN ('Pending', 'Approved')";
+
+$today_result = mysqli_query($conn, $today_query);
+
+$today_data = mysqli_fetch_assoc($today_result);
+
+$total_today = $today_data["total_today"];
+
+
+/* =========================================================
+   VACCINATIONS RECORDED
+========================================================= */
+
+$vaccination_query = "SELECT COUNT(*) AS total_vaccinations
+                      FROM vaccination_records
+                      WHERE hospital_id = '$hospital_id'";
+
+$vaccination_result = mysqli_query($conn, $vaccination_query);
+
+$vaccination_data = mysqli_fetch_assoc($vaccination_result);
+
+$total_vaccinations = $vaccination_data["total_vaccinations"];
+
+
+/* =========================================================
+   RECENT APPOINTMENTS
+========================================================= */
+
+$recent_query = "SELECT 
+                    b.id,
+                    c.child_name,
+                    v.vaccine_name,
+                    v.dose_number,
+                    b.booking_date,
+                    b.booking_time,
+                    b.status
+                 FROM bookings b
+
+                 INNER JOIN children c
+                 ON b.child_id = c.id
+
+                 INNER JOIN vaccines v
+                 ON b.vaccine_id = v.id
+
+                 WHERE b.hospital_id = '$hospital_id'
+
+                 ORDER BY b.booking_date DESC,
+                          b.booking_time DESC
+
+                 LIMIT 5";
+
+$recent_result = mysqli_query($conn, $recent_query);
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hospital Dashboard | ImmuniCare</title>
+
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+</head>
+
+
+<body>
+
+<div class="parent-dashboard">
+
+
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside class="dashboard-sidebar">
+
+
+        <div class="sidebar-brand">
+
+            <img
+                src="../assets/images/immunicare-logo-hospital-sidebar.svg"
+                alt="ImmuniCare Hospital Portal"
+                class="sidebar-brand-image"
+            >
+
+        </div>
+
+
+        <!-- Navigation -->
+
+        <nav class="sidebar-nav">
+
+
+            <div class="nav-section-title">
+                MAIN MENU
+            </div>
+
+
+            <a href="dashboard.php" class="sidebar-link active">
+
+                <span class="sidebar-icon">⌂</span>
+
+                <span>Dashboard</span>
+
+            </a>
+
+
+            <a href="appointments.php" class="sidebar-link">
+
+                <span class="sidebar-icon">▤</span>
+
+                <span>Appointments</span>
+
+            </a>
+
+
+            <a href="vaccinations.php" class="sidebar-link">
+
+                <span class="sidebar-icon">✓</span>
+
+                <span>Vaccinations</span>
+
+            </a>
+
+
+            <a href="schedule.php" class="sidebar-link">
+
+                <span class="sidebar-icon">▣</span>
+
+                <span>Vaccination Schedule</span>
+
+            </a>
+
+
+            <div class="nav-section-title dashboard-nav-spacing">
+                ACCOUNT
+            </div>
+
+
+            <a href="profile.php" class="sidebar-link">
+
+                <span class="sidebar-icon">◯</span>
+
+                <span>My Profile</span>
+
+            </a>
+
+
+        </nav>
+
+
+        <!-- Sidebar Bottom -->
+
+        <div class="sidebar-bottom">
+
+            <a href="logout.php" class="logout-link">
+
+                <span class="sidebar-icon">↪</span>
+
+                <span>Logout</span>
+
+            </a>
+
+        </div>
+
+
+    </aside>
+
+
+
+    <!-- ================= MAIN CONTENT ================= -->
+
+    <main class="dashboard-main">
+
+
+        <!-- TOP HEADER -->
+
+        <header class="dashboard-header">
+
+
+            <div class="header-page-title">
+
+                <h1>Dashboard</h1>
+
+                <p>
+                    Manage your hospital's vaccination activities
+                </p>
+
+            </div>
+
+
+            <div class="header-actions">
+
+
+            <div class="notification-wrapper">
+
+<button class="notification-button" type="button" aria-label="Notifications">
+
+    <svg
+        class="notification-bell"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    >
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+        <path d="M10 21h4"></path>
+    </svg>
+
+    <?php if ($unread_notifications > 0): ?>
+        <span class="notification-dot"></span>
+    <?php endif; ?>
+
+</button>
+
+
+    <div class="notification-dropdown">
+
+        <div class="notification-dropdown-header">
+            <strong>Notifications</strong>
+
+            <?php if ($unread_notifications > 0): ?>
+                <span>
+                    <?php echo $unread_notifications; ?> new
+                </span>
+            <?php endif; ?>
+        </div>
+
+        <?php if (mysqli_num_rows($notification_result) > 0): ?>
+
+            <?php while ($notification = mysqli_fetch_assoc($notification_result)): ?>
+
+                <div class="notification-item">
+
+                    <strong>
+                        <?php echo htmlspecialchars($notification["title"]); ?>
+                    </strong>
+
+                    <p>
+                        <?php echo htmlspecialchars($notification["message"]); ?>
+                    </p>
+
+                    <small>
+                        <?php echo htmlspecialchars($notification["created_at"]); ?>
+                    </small>
+
+                </div>
+
+            <?php endwhile; ?>
+
+        <?php else: ?>
+
+            <div class="notification-empty">
+                No notifications yet.
+            </div>
+
+        <?php endif; ?>
+
+    </div>
+
+</div>
+
+
+                <div class="header-divider"></div>
+
+
+                <div class="profile-mini">
+
+
+                    <div class="profile-avatar">
+
+                        <?php echo strtoupper(substr($name, 0, 1)); ?>
+
+                    </div>
+
+
+                    <div class="profile-info">
+
+                        <strong>
+                            <?php echo htmlspecialchars($name); ?>
+                        </strong>
+
+                        <span>Hospital Account</span>
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        </header>
+
+
+
+        <!-- DASHBOARD CONTENT -->
+
+        <section class="dashboard-content">
+
+
+            <!-- WELCOME BANNER -->
+
+            <div class="welcome-banner">
+
+
+                <div class="welcome-text">
+
+
+                    <span class="welcome-label">
+                        IMMUNICARE HOSPITAL PORTAL
+                    </span>
+
+
+                    <h2>
+
+                        Welcome, <?php echo htmlspecialchars($hospital_name); ?> 👋
+
+                    </h2>
+
+
+                    <p>
+
+                        Manage appointments, vaccination schedules
+                        and vaccination records for your hospital.
+
+                    </p>
+
+
+                </div>
+
+
+                <div class="welcome-decoration">
+
+
+                    <div class="health-icon">
+                        ♥
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- OVERVIEW -->
+
+            <div class="section-heading">
+
+
+                <div>
+
+                    <h2>Overview</h2>
+
+                    <p>
+                        Your hospital activity at a glance
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- STATISTICS -->
+
+            <div class="dashboard-stats">
+
+
+                <!-- Pending -->
+
+                <div class="dashboard-stat-card">
+
+
+                    <div class="stat-icon stat-icon-blue">
+                        ⏳
+                    </div>
+
+
+                    <div class="stat-information">
+
+
+                        <span class="stat-label">
+                            Pending Appointments
+                        </span>
+
+
+                        <strong class="stat-number">
+                            <?php echo $total_pending; ?>
+                        </strong>
+
+
+                        <span class="stat-description">
+                            Awaiting hospital action
+                        </span>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- Approved -->
+
+                <div class="dashboard-stat-card">
+
+
+                    <div class="stat-icon stat-icon-green">
+                        ✓
+                    </div>
+
+
+                    <div class="stat-information">
+
+
+                        <span class="stat-label">
+                            Approved Appointments
+                        </span>
+
+
+                        <strong class="stat-number">
+                            <?php echo $total_approved; ?>
+                        </strong>
+
+
+                        <span class="stat-description">
+                            Confirmed appointments
+                        </span>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- Today's appointments -->
+
+                <div class="dashboard-stat-card">
+
+
+                    <div class="stat-icon stat-icon-orange">
+                        ▣
+                    </div>
+
+
+                    <div class="stat-information">
+
+
+                        <span class="stat-label">
+                            Today's Appointments
+                        </span>
+
+
+                        <strong class="stat-number">
+                            <?php echo $total_today; ?>
+                        </strong>
+
+
+                        <span class="stat-description">
+                            Appointments for today
+                        </span>
+
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- Vaccinations -->
+
+                <div class="dashboard-stat-card">
+
+
+                    <div class="stat-icon stat-icon-purple">
+                        ✓
+                    </div>
+
+
+                    <div class="stat-information">
+
+
+                        <span class="stat-label">
+                            Vaccinations Recorded
+                        </span>
+
+
+                        <strong class="stat-number">
+                            <?php echo $total_vaccinations; ?>
+                        </strong>
+
+
+                        <span class="stat-description">
+                            Vaccinations completed
+                        </span>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- LOWER DASHBOARD AREA -->
+
+            <div class="dashboard-grid">
+
+
+                <!-- RECENT APPOINTMENTS -->
+
+                <div class="dashboard-card">
+
+
+                    <div class="card-header">
+
+
+                        <div>
+
+                            <h3>Recent Appointments</h3>
+
+                            <p>
+                                Latest appointment activity
+                            </p>
+
+                        </div>
+
+
+                        <a href="appointments.php" class="card-link">
+                            View All →
+                        </a>
+
+
+                    </div>
+
+
+
+                    <?php if (mysqli_num_rows($recent_result) > 0): ?>
+
+
+                        <div class="quick-actions">
+
+
+                            <?php while ($appointment = mysqli_fetch_assoc($recent_result)): ?>
+
+
+                                <div class="quick-action">
+
+
+                                    <div class="quick-action-icon">
+                                        ▣
+                                    </div>
+
+
+                                    <div>
+
+                                        <strong>
+                                            <?php echo htmlspecialchars($appointment["child_name"]); ?>
+                                        </strong>
+
+
+                                        <span>
+
+                                            <?php echo htmlspecialchars($appointment["vaccine_name"]); ?>
+
+                                            - Dose
+
+                                            <?php echo htmlspecialchars($appointment["dose_number"]); ?>
+
+                                            <br>
+
+                                            <?php echo htmlspecialchars($appointment["booking_date"]); ?>
+
+                                            at
+
+                                            <?php echo htmlspecialchars($appointment["booking_time"]); ?>
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <span class="quick-arrow">
+
+                                        <?php echo htmlspecialchars($appointment["status"]); ?>
+
+                                    </span>
+
+
+                                </div>
+
+
+                            <?php endwhile; ?>
+
+
+                        </div>
+
+
+                    <?php else: ?>
+
+
+                        <div class="empty-dashboard-state">
+
+
+                            <div class="empty-state-icon">
+                                ▣
+                            </div>
+
+
+                            <h4>
+                                No appointments yet
+                            </h4>
+
+
+                            <p>
+
+                                Parent appointment bookings
+                                will appear here.
+
+                            </p>
+
+
+                            <a href="appointments.php" class="dashboard-primary-btn">
+
+                                View Appointments
+
+                            </a>
+
+
+                        </div>
+
+
+                    <?php endif; ?>
+
+
+                </div>
+
+
+
+                <!-- QUICK ACTIONS -->
+
+                <div class="dashboard-card">
+
+
+                    <div class="card-header">
+
+
+                        <div>
+
+                            <h3>Quick Actions</h3>
+
+                            <p>
+                                Common hospital activities
+                            </p>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="quick-actions">
+
+
+                        <a href="appointments.php" class="quick-action">
+
+
+                            <div class="quick-action-icon">
+                                +
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    Manage Appointments
+                                </strong>
+
+                                <span>
+                                    Review parent bookings
+                                </span>
+
+                            </div>
+
+
+                            <span class="quick-arrow">
+                                →
+                            </span>
+
+
+                        </a>
+
+
+
+                        <a href="schedule.php" class="quick-action">
+
+
+                            <div class="quick-action-icon">
+                                ▣
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    Vaccination Schedule
+                                </strong>
+
+                                <span>
+                                    Manage vaccination schedules
+                                </span>
+
+                            </div>
+
+
+                            <span class="quick-arrow">
+                                →
+                            </span>
+
+
+                        </a>
+
+
+
+                        <a href="vaccinations.php" class="quick-action">
+
+
+                            <div class="quick-action-icon">
+                                ✓
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    Record Vaccination
+                                </strong>
+
+                                <span>
+                                    Add a vaccination record
+                                </span>
+
+                            </div>
+
+
+                            <span class="quick-arrow">
+                                →
+                            </span>
+
+
+                        </a>
+
+
+
+                        <a href="profile.php" class="quick-action">
+
+
+                            <div class="quick-action-icon">
+                                ◯
+                            </div>
+
+
+                            <div>
+
+                                <strong>
+                                    Hospital Profile
+                                </strong>
+
+                                <span>
+                                    View hospital information
+                                </span>
+
+                            </div>
+
+
+                            <span class="quick-arrow">
+                                →
+                            </span>
+
+
+                        </a>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- INFORMATION SECTION -->
+
+            <div class="dashboard-information">
+
+
+                <div class="information-icon">
+                    ✦
+                </div>
+
+
+                <div>
+
+
+                    <strong>
+                        Keep vaccination services organized
+                    </strong>
+
+
+                    <p>
+
+                        ImmuniCare helps your hospital manage
+                        appointments, vaccination schedules and
+                        children's vaccination records in one place.
+
+                    </p>
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+</div>
+
+
+
+<script>
+
+
+
+    const notificationButton = document.querySelector(".notification-button");
+    const notificationDropdown = document.querySelector(".notification-dropdown");
+
+    notificationButton.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        notificationDropdown.classList.toggle("show");
+
+    });
+
+    document.addEventListener("click", function () {
+
+        notificationDropdown.classList.remove("show");
+
+    });
+
+    notificationDropdown.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+    });
+
+
+
+</script>
+
+
+</body>
+
+</html>

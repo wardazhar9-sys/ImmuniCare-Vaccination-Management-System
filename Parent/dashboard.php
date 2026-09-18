@@ -20,6 +20,46 @@ $name = $_SESSION["name"];
 
 $parent_id = $_SESSION["user_id"];
 
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+// Mark notifications as read
+if (isset($_POST["mark_notifications_read"])) {
+
+    $mark_read_query = "UPDATE notifications
+                        SET is_read = 1
+                        WHERE user_id = '$parent_id'
+                        AND is_read = 0";
+
+    mysqli_query($conn, $mark_read_query);
+
+    exit();
+}
+
+
+// Get unread notification count
+$notification_count_query = "SELECT COUNT(*) AS unread_count
+                             FROM notifications
+                             WHERE user_id = '$parent_id'
+                             AND is_read = 0";
+
+$notification_count_result = mysqli_query($conn, $notification_count_query);
+
+$notification_count_data = mysqli_fetch_assoc($notification_count_result);
+
+$unread_notifications = $notification_count_data["unread_count"];
+
+
+// Get recent notifications
+$notification_query = "SELECT id, title, message, type, is_read, created_at
+                       FROM notifications
+                       WHERE user_id = '$parent_id'
+                       ORDER BY created_at DESC
+                       LIMIT 5";
+
+$notification_result = mysqli_query($conn, $notification_query);
+
 $children_query = "SELECT COUNT(*) AS total_children 
                    FROM children 
                    WHERE parent_id = '$parent_id'";
@@ -213,52 +253,142 @@ if ($upcoming_vaccination) {
 
             <!-- TOP HEADER -->
 
-            <header class="dashboard-header">
+          <!-- TOP HEADER -->
 
-                <div class="header-page-title">
+<header class="dashboard-header">
 
-                    <h1>Dashboard</h1>
+    <div class="header-page-title">
 
-                    <p>
-                        Manage your children's vaccination journey
-                    </p>
+        <h1>Dashboard</h1>
+
+        <p>
+            Manage your children's vaccination journey
+        </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+        <!-- NOTIFICATIONS -->
+
+        <div class="notification-wrapper">
+
+            <button
+                class="notification-button"
+                type="button"
+                aria-label="Notifications"
+            >
+
+                <svg
+                    class="notification-bell"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+
+                    <path d="M10 21h4"></path>
+
+                </svg>
+
+
+                <?php if ($unread_notifications > 0): ?>
+
+                    <span class="notification-dot"></span>
+
+                <?php endif; ?>
+
+            </button>
+
+
+            <!-- NOTIFICATION DROPDOWN -->
+
+            <div class="notification-dropdown">
+
+                <div class="notification-dropdown-header">
+
+                    <strong>Notifications</strong>
+
+                    <?php if ($unread_notifications > 0): ?>
+
+                        <span>
+                            <?php echo $unread_notifications; ?> new
+                        </span>
+
+                    <?php endif; ?>
 
                 </div>
 
 
-                <div class="header-actions">
+                <?php if (mysqli_num_rows($notification_result) > 0): ?>
 
-                    <button class="notification-button" type="button">
-                        <span>♢</span>
-                        <span class="notification-dot"></span>
-                    </button>
+                    <?php while ($notification = mysqli_fetch_assoc($notification_result)): ?>
 
-
-                    <div class="header-divider"></div>
-
-
-                    <div class="profile-mini">
-
-                        <div class="profile-avatar">
-                            <?php echo strtoupper(substr($name, 0, 1)); ?>
-                        </div>
-
-                        <div class="profile-info">
+                        <div class="notification-item">
 
                             <strong>
-                                <?php echo htmlspecialchars($name); ?>
+                                <?php echo htmlspecialchars($notification["title"]); ?>
                             </strong>
 
-                            <span>Parent Account</span>
+                            <p>
+                                <?php echo htmlspecialchars($notification["message"]); ?>
+                            </p>
+
+                            <small>
+                                <?php echo htmlspecialchars($notification["created_at"]); ?>
+                            </small>
 
                         </div>
 
+                    <?php endwhile; ?>
+
+                <?php else: ?>
+
+                    <div class="notification-empty">
+                        No notifications yet.
                     </div>
 
-                </div>
+                <?php endif; ?>
 
-            </header>
+            </div>
 
+        </div>
+
+
+        <!-- DIVIDER -->
+
+        <div class="header-divider"></div>
+
+
+        <!-- PROFILE -->
+
+        <div class="profile-mini">
+
+            <div class="profile-avatar">
+                <?php echo strtoupper(substr($name, 0, 1)); ?>
+            </div>
+
+            <div class="profile-info">
+
+                <strong>
+                    <?php echo htmlspecialchars($name); ?>
+                </strong>
+
+                <span>Parent Account</span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
 
             <!-- DASHBOARD CONTENT -->
 
@@ -424,27 +554,116 @@ if ($upcoming_vaccination) {
 
                     <!-- UPCOMING VACCINATION -->
 
-                    <?php if ($upcoming_vaccination): ?>
+<?php if ($upcoming_vaccination): ?>
 
-    <div class="upcoming-vaccination-details">
+    <div class="upcoming-vaccination-card">
 
-        <h4><?php echo htmlspecialchars($upcoming_child_name); ?></h4>
+        <div class="upcoming-card-header">
 
-        <p>
-            <?php echo htmlspecialchars($upcoming_vaccine_name); ?>
-        </p>
+            <div>
+                <span class="upcoming-card-label">
+                    UPCOMING VACCINATION
+                </span>
 
-        <p>
-            Date: <?php echo htmlspecialchars($upcoming_date); ?>
-        </p>
+                <h3>
+                    Next vaccination
+                </h3>
+            </div>
 
-        <p>
-            Time: <?php echo htmlspecialchars($upcoming_time); ?>
-        </p>
+            <a href="schedule.php" class="card-link">
+                View Schedule →
+            </a>
 
-        <a href="schedule.php" class="dashboard-primary-btn">
-            View Schedule
-        </a>
+        </div>
+
+
+        <div class="upcoming-vaccine-main">
+
+            <div class="upcoming-vaccine-icon">
+                ✓
+            </div>
+
+
+            <div class="upcoming-vaccine-info">
+
+                <span class="upcoming-child-label">
+                    CHILD
+                </span>
+
+                <h4>
+                    <?php echo htmlspecialchars($upcoming_child_name); ?>
+                </h4>
+
+                <p>
+                    <?php echo htmlspecialchars($upcoming_vaccine_name); ?>
+                </p>
+
+            </div>
+
+
+            <span class="upcoming-status">
+                Scheduled
+            </span>
+
+        </div>
+
+
+        <div class="upcoming-vaccine-details">
+
+
+            <div class="upcoming-detail">
+
+                <div class="upcoming-detail-icon">
+                    📅
+                </div>
+
+                <div>
+
+                    <span>
+                        DATE
+                    </span>
+
+                    <strong>
+                        <?php
+                        echo date(
+                            "d M Y",
+                            strtotime($upcoming_date)
+                        );
+                        ?>
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="upcoming-detail">
+
+                <div class="upcoming-detail-icon">
+                    🕐
+                </div>
+
+                <div>
+
+                    <span>
+                        TIME
+                    </span>
+
+                    <strong>
+                        <?php
+                        echo date(
+                            "h:i A",
+                            strtotime($upcoming_time)
+                        );
+                        ?>
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+        </div>
 
     </div>
 
@@ -625,6 +844,90 @@ if ($upcoming_vaccination) {
         </main>
 
     </div>
+
+  
+
+
+<script>
+
+    const notificationButton =
+        document.querySelector(".notification-button");
+
+    const notificationDropdown =
+        document.querySelector(".notification-dropdown");
+
+
+    notificationButton.addEventListener("click", function (event) {
+
+        event.stopPropagation();
+
+        notificationDropdown.classList.toggle("show");
+
+
+        // Mark notifications as read
+        <?php if ($unread_notifications > 0): ?>
+
+        fetch("dashboard.php", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/x-www-form-urlencoded"
+            },
+
+            body: "mark_notifications_read=1"
+
+        })
+        .then(() => {
+
+            // Remove red dot
+            const notificationDot =
+                document.querySelector(".notification-dot");
+
+            if (notificationDot) {
+                notificationDot.remove();
+            }
+
+
+            // Remove "1 new"
+            const newCount =
+                document.querySelector(
+                    ".notification-dropdown-header span"
+                );
+
+            if (newCount) {
+                newCount.remove();
+            }
+
+        });
+
+        <?php endif; ?>
+
+    });
+
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", function () {
+
+        notificationDropdown.classList.remove("show");
+
+    });
+
+
+    // Don't close dropdown when clicking inside it
+    notificationDropdown.addEventListener(
+        "click",
+        function (event) {
+
+            event.stopPropagation();
+
+        }
+    );
+
+</script>
+
+
 
 </body>
 

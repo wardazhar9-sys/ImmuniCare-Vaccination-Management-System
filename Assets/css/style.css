@@ -202,30 +202,26 @@ a {
 
 /* =========================================
    IMMUNICARE NAVBAR
+   HOME B DESIGN + HOME A CONTENT
 ========================================= */
 
 .navbar {
     width: 100%;
-    height: 78px;
+    height: 90px;
 
-    background-color: #FFFFFF;
+    background: #ffffff;
 
-    border-bottom: 1px solid #E5EAF0;
+    border-bottom: 1px solid #e8eef7;
 
-    position: sticky;
-    top: 0;
-
+    position: relative;
     z-index: 1000;
 }
-
-
-/* ---------- Navbar Container ---------- */
 
 .navbar-container {
     width: 92%;
     max-width: 1350px;
 
-    height: 78px;
+    height: 90px;
 
     margin: 0 auto;
 
@@ -237,165 +233,72 @@ a {
 
 
 /* =========================================
-   BRAND
+   HOME A LOGO
 ========================================= */
 
 .brand {
     display: flex;
     align-items: center;
 
-    text-decoration: none;
-
     flex-shrink: 0;
+
+    text-decoration: none;
 }
 
 .brand-image {
     display: block;
+
     width: 255px;
-    height: 55px;
+    height: auto;
+
     object-fit: contain;
 }
 
 
-/* ---------- Logo ---------- */
-
-.brand-logo {
-    width: 40px;
-    height: 44px;
-
-    background-color: #2563EB;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 7px 7px 12px 12px;
-
-    position: relative;
-
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
-}
-
-
-/* Small shield-like bottom shape */
-
-.brand-logo::after {
-    content: "";
-
-    position: absolute;
-
-    bottom: -5px;
-
-    width: 0;
-    height: 0;
-
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
-    border-top: 8px solid #2563EB;
-}
-
-
-/* ---------- Heart inside logo ---------- */
-
-.brand-heart {
-    color: #FFFFFF;
-
-    font-size: 21px;
-
-    line-height: 1;
-
-    position: relative;
-    z-index: 2;
-}
-
-
-/* ---------- Brand Text ---------- */
-
-.brand-text {
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-
-    line-height: 1;
-}
-
-
-.brand-name {
-    color: #0B1F3A;
-
-    font-size: 21px;
-
-    font-weight: 800;
-
-    letter-spacing: -0.4px;
-}
-
-
-.brand-subtitle {
-    color: #64748B;
-
-    font-size: 8px;
-
-    font-weight: 500;
-
-    margin-top: 5px;
-
-    letter-spacing: 0.1px;
-}
-
-
 /* =========================================
-   NAVIGATION LINKS
+   HOME A NAVIGATION
+   HOME B DESIGN
 ========================================= */
 
 .nav-links {
     flex: 1;
 
     display: flex;
-
     align-items: center;
-
     justify-content: center;
 
-    gap: 32px;
+    gap: 38px;
 
-    margin-left: 25px;
+    margin-left: 20px;
 }
-
 
 .nav-links a {
     position: relative;
 
-    color: #475569;
+    color: #334155;
 
     text-decoration: none;
 
-    font-size: 13px;
-
+    font-size: 15px;
     font-weight: 600;
 
     white-space: nowrap;
 
-    padding: 30px 0;
+    padding: 34px 0 30px;
 
     transition: color 0.25s ease;
 }
 
-
 .nav-links a:hover {
-    color: #2563EB;
+    color: #2563eb;
 }
-
-
-/* ---------- Active Link ---------- */
 
 .nav-links a.active {
-    color: #2563EB;
+    color: #2563eb;
 }
 
 
-/* Active blue line */
+/* HOME B ACTIVE UNDERLINE */
 
 .nav-links a.active::after {
     content: "";
@@ -405,17 +308,17 @@ a {
     left: 0;
     right: 0;
 
-    bottom: 19px;
+    bottom: 18px;
 
-    height: 2px;
+    height: 3px;
 
-    background-color: #2563EB;
+    background: #2563eb;
 
     border-radius: 10px;
 }
 
 
-/* Hover line */
+/* Hover underline */
 
 .nav-links a:not(.active)::after {
     content: "";
@@ -424,13 +327,13 @@ a {
 
     left: 50%;
 
-    bottom: 19px;
+    bottom: 18px;
 
     width: 0;
 
-    height: 2px;
+    height: 3px;
 
-    background-color: #60A5FA;
+    background: #60a5fa;
 
     transform: translateX(-50%);
 
@@ -439,7 +342,6 @@ a {
     border-radius: 10px;
 }
 
-
 .nav-links a:not(.active):hover::after {
     width: 100%;
 }
@@ -447,6 +349,7 @@ a {
 
 /* =========================================
    LOGIN / REGISTER
+   HOME B DESIGN
 ========================================= */
 
 .nav-buttons {
@@ -454,75 +357,93 @@ a {
 
     align-items: center;
 
-    gap: 10px;
+    gap: 13px;
 
     flex-shrink: 0;
 }
 
 
-/* ---------- Login ---------- */
+/* LOGIN */
 
 .login-btn {
-    min-width: 68px;
+    min-width: 106px;
 
-    padding: 9px 17px;
+    height: 52px;
 
-    border: 1px solid #3B82F6;
+    padding: 0 25px;
 
-    border-radius: 9px;
+    display: inline-flex;
 
-    color: #2563EB;
+    align-items: center;
+    justify-content: center;
 
-    background-color: #FFFFFF;
+    border: 1px solid #6f98f5;
 
-    font-size: 12px;
+    border-radius: 28px;
+
+    background: #ffffff;
+
+    color: #2563eb;
+
+    font-size: 15px;
 
     font-weight: 600;
 
-    text-align: center;
+    text-decoration: none;
 
     transition: all 0.25s ease;
 }
-
 
 .login-btn:hover {
-    background-color: #EFF6FF;
+    background: #eff6ff;
 
-    border-color: #2563EB;
+    border-color: #2563eb;
+
+    transform: translateY(-2px);
 }
 
 
-/* ---------- Register ---------- */
+/* REGISTER */
 
 .register-btn {
-    min-width: 78px;
+    min-width: 141px;
 
-    padding: 10px 18px;
+    height: 52px;
 
-    border-radius: 9px;
+    padding: 0 28px;
 
-    background-color: #0B1F3A;
+    display: inline-flex;
 
-    border: 1px solid #0B1F3A;
+    align-items: center;
+    justify-content: center;
 
-    color: #FFFFFF;
+    border: 1px solid #2563eb;
 
-    font-size: 12px;
+    border-radius: 28px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    font-size: 15px;
 
     font-weight: 600;
 
-    text-align: center;
+    text-decoration: none;
+
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.18);
 
     transition: all 0.25s ease;
 }
 
-
 .register-btn:hover {
-    background-color: #16365F;
+    background: #1d4ed8;
 
-    border-color: #16365F;
+    border-color: #1d4ed8;
 
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+
+    box-shadow: 0 14px 30px rgba(37, 99, 235, 0.25);
 }
 
 
@@ -530,49 +451,40 @@ a {
    RESPONSIVE NAVBAR
 ========================================= */
 
-@media (max-width: 1000px) {
+@media (max-width: 1200px) {
 
     .navbar-container {
-        gap: 18px;
+        gap: 20px;
     }
 
     .brand-image {
-        width: 220px;
-        height: 50px;
+        width: 225px;
     }
 
     .nav-links {
-        gap: 20px;
-        margin-left: 10px;
+        gap: 25px;
+
+        margin-left: 5px;
     }
 
     .nav-links a {
-        font-size: 12px;
+        font-size: 14px;
     }
-
-    .brand-name {
-        font-size: 19px;
-    }
-
 }
 
 
-/* ---------- Tablet ---------- */
-
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
 
     .navbar {
         height: auto;
     }
 
     .navbar-container {
-        height: auto;
-
-        min-height: 78px;
+        min-height: 90px;
 
         flex-wrap: wrap;
 
-        padding: 14px 0;
+        padding: 12px 0;
     }
 
     .nav-links {
@@ -582,11 +494,9 @@ a {
 
         margin-left: 0;
 
-        padding-top: 5px;
+        padding: 5px 0;
 
-        padding-bottom: 5px;
-
-        gap: 25px;
+        gap: 30px;
     }
 
     .nav-links a {
@@ -597,104 +507,103 @@ a {
     .nav-links a:not(.active)::after {
         bottom: 0;
     }
-
 }
 
 
-/* ---------- Mobile ---------- */
-
-@media (max-width: 520px) {
+@media (max-width: 700px) {
 
     .navbar-container {
         gap: 12px;
     }
 
     .brand-image {
-        width: 175px;
-        height: 42px;
-    }
-
-    .brand-logo {
-        width: 34px;
-        height: 38px;
-    }
-
-    .brand-logo::after {
-        border-left-width: 17px;
-        border-right-width: 17px;
-    }
-
-    .brand-name {
-        font-size: 17px;
-    }
-
-    .brand-subtitle {
-        font-size: 7px;
-    }
-
-    .brand-heart {
-        font-size: 18px;
+        width: 190px;
     }
 
     .nav-buttons {
-        gap: 6px;
+        margin-left: auto;
+
+        gap: 7px;
     }
 
     .login-btn,
     .register-btn {
         min-width: auto;
 
-        padding: 8px 11px;
+        height: 44px;
 
-        font-size: 11px;
+        padding: 0 15px;
+
+        font-size: 13px;
     }
 
     .nav-links {
-        gap: 15px;
+        order: 4;
+
+        gap: 20px;
+
+        overflow-x: auto;
+
+        justify-content: flex-start;
     }
 
     .nav-links a {
-        font-size: 11px;
+        font-size: 13px;
+    }
+}
+
+
+@media (max-width: 480px) {
+
+    .brand-image {
+        width: 170px;
     }
 
+    .login-btn,
+    .register-btn {
+        padding: 0 11px;
+
+        font-size: 12px;
+    }
+
+    .nav-links {
+        gap: 16px;
+    }
 }
 
 /* =========================================
-   IMMUNICARE HERO SECTION
+   HOME B - HERO SECTION
 ========================================= */
 
 .hero {
     width: 100%;
-    min-height: 620px;
+    min-height: 720px;
 
-    background:
-        radial-gradient(
-            circle at 85% 50%,
-            #DBEAFE 0%,
-            #F5F7FA 35%,
-            #F5F7FA 100%
-        );
+    background: #ffffff;
+
+    position: relative;
 
     overflow: hidden;
 }
 
 
-/* ---------- Hero Container ---------- */
+/* =========================================
+   HERO CONTAINER
+========================================= */
 
 .hero-container {
     width: 92%;
     max-width: 1350px;
 
-    min-height: 620px;
+    min-height: 720px;
 
     margin: 0 auto;
 
-    display: flex;
+    display: grid;
+
+    grid-template-columns: 43% 57%;
+
     align-items: center;
-
-    justify-content: space-between;
-
-    gap: 70px;
 }
 
 
@@ -703,87 +612,117 @@ a {
 ========================================= */
 
 .hero-content {
-    width: 52%;
+    position: relative;
 
-    padding: 60px 0;
+    z-index: 5;
+
+    padding-left: 30px;
+
+    padding-top: 10px;
 }
 
 
-/* ---------- Badge ---------- */
+/* =========================================
+   HERO BADGE
+========================================= */
 
 .hero-badge {
     display: inline-flex;
 
     align-items: center;
 
-    gap: 8px;
+    gap: 10px;
 
-    padding: 8px 13px;
+    padding: 10px 16px;
 
-    background-color: #EFF6FF;
+    border: 1px solid #dbe8ff;
 
-    border: 1px solid #DBEAFE;
+    border-radius: 25px;
 
-    border-radius: 30px;
+    background: #f7faff;
 
-    color: #2563EB;
+    color: #2563eb;
 
-    font-size: 12px;
+    font-size: 13px;
 
     font-weight: 600;
-
-    margin-bottom: 20px;
-}
-
-
-.badge-dot {
-    width: 7px;
-    height: 7px;
-
-    background-color: #2563EB;
-
-    border-radius: 50%;
-}
-
-
-/* ---------- Main Heading ---------- */
-
-.hero-content h1 {
-    max-width: 650px;
-
-    color: #0B1F3A;
-
-    font-size: 55px;
-
-    line-height: 1.08;
-
-    letter-spacing: -2px;
-
-    font-weight: 800;
 
     margin-bottom: 22px;
 }
 
 
-.hero-content h1 span {
-    display: block;
+.badge-dot {
+    width: 8px;
 
-    color: #2563EB;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #2563eb;
 }
 
 
-/* ---------- Description ---------- */
+/* =========================================
+   HERO HEADING
+========================================= */
+
+.hero-content h1 {
+    max-width: 650px;
+
+    margin: 0;
+
+    color: #0f234d;
+
+    font-size: clamp(48px, 4.5vw, 68px);
+
+    line-height: 1.02;
+
+    letter-spacing: -2.5px;
+
+    font-weight: 800;
+}
+
+
+.hero-content h1 span {
+    color: #2563eb;
+}
+
+
+/* =========================================
+   GREEN LINE
+========================================= */
+
+.hero-line {
+    width: 82px;
+
+    height: 6px;
+
+    margin-top: 27px;
+
+    margin-bottom: 24px;
+
+    border-radius: 10px;
+
+    background: #14b8a6;
+}
+
+
+/* =========================================
+   HERO DESCRIPTION
+========================================= */
 
 .hero-content > p {
     max-width: 590px;
 
-    color: #64748B;
+    margin: 0;
 
-    font-size: 16px;
+    color: #64749b;
 
-    line-height: 1.8;
+    font-size: 17px;
 
-    margin-bottom: 30px;
+    line-height: 1.55;
+
+    font-weight: 400;
 }
 
 
@@ -796,479 +735,174 @@ a {
 
     align-items: center;
 
-    gap: 13px;
+    gap: 18px;
 
-    margin-bottom: 30px;
+    margin-top: 30px;
 }
 
 
-/* ---------- Primary Button ---------- */
+/* Primary button */
 
 .hero-primary-btn {
+    min-width: 215px;
+
+    height: 64px;
+
+    padding: 0 27px;
+
     display: inline-flex;
 
     align-items: center;
 
     justify-content: center;
 
-    gap: 12px;
+    gap: 18px;
 
-    padding: 13px 21px;
+    border-radius: 34px;
 
-    background-color: #0B1F3A;
+    background: #2563eb;
 
-    color: #FFFFFF;
+    color: #ffffff;
 
-    border-radius: 9px;
+    font-size: 16px;
 
-    font-size: 13px;
+    font-weight: 700;
 
-    font-weight: 600;
+    text-decoration: none;
+
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
 
     transition: all 0.25s ease;
-
-    box-shadow: 0 8px 20px rgba(11, 31, 58, 0.16);
 }
 
 
 .hero-primary-btn span {
-    font-size: 18px;
+    color: #ffffff;
 
-    line-height: 0;
+    font-size: 25px;
+
+    line-height: 1;
 
     transition: transform 0.25s ease;
 }
 
 
 .hero-primary-btn:hover {
-    background-color: #16365F;
+    background: #1d4ed8;
 
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+
+    box-shadow: 0 18px 35px rgba(37, 99, 235, 0.28);
 }
 
 
 .hero-primary-btn:hover span {
-    transform: translateX(4px);
+    transform: translateX(5px);
 }
 
 
-/* ---------- Secondary Button ---------- */
+/* Secondary button */
 
 .hero-secondary-btn {
+    min-width: 205px;
+
+    height: 64px;
+
+    padding: 0 28px;
+
     display: inline-flex;
 
     align-items: center;
 
     justify-content: center;
 
-    padding: 12px 20px;
+    border: 1px solid #dce6f5;
 
-    background-color: #FFFFFF;
+    border-radius: 34px;
 
-    color: #0B1F3A;
+    background: #ffffff;
 
-    border: 1px solid #CBD5E1;
+    color: #2563eb;
 
-    border-radius: 9px;
-
-    font-size: 13px;
+    font-size: 16px;
 
     font-weight: 600;
+
+    text-decoration: none;
+
+    box-shadow: 0 10px 25px rgba(38, 74, 130, 0.06);
 
     transition: all 0.25s ease;
 }
 
 
 .hero-secondary-btn:hover {
-    border-color: #2563EB;
+    border-color: #2563eb;
 
-    color: #2563EB;
+    background: #f7faff;
 
-    background-color: #F8FBFF;
+    transform: translateY(-3px);
 }
-
-
-/* =========================================
-   HERO TRUST
-========================================= */
-
-.hero-trust {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-}
-
-
-.trust-icon {
-    width: 30px;
-    height: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background-color: #DCFCE7;
-
-    color: #16A34A;
-
-    border-radius: 50%;
-
-    font-size: 14px;
-
-    font-weight: 800;
-}
-
-
-.hero-trust div:last-child {
-    display: flex;
-
-    flex-direction: column;
-}
-
-
-.hero-trust strong {
-    color: #334155;
-
-    font-size: 11px;
-
-    font-weight: 700;
-}
-
-
-.hero-trust small {
-    color: #94A3B8;
-
-    font-size: 10px;
-
-    margin-top: 2px;
-}
-
 
 /* =========================================
    HERO VISUAL
 ========================================= */
 
 .hero-visual {
-    width: 46%;
-
-    min-height: 500px;
-
     position: relative;
-
+    min-height: 600px;
     display: flex;
-
     align-items: center;
-
     justify-content: center;
+    overflow: visible;
 }
-
-
-/* ---------- Background Circle ---------- */
-
-.visual-circle {
-    width: 420px;
-    height: 420px;
-
-    background-color: #DBEAFE;
-
-    border-radius: 50%;
-
-    position: absolute;
-
-    right: 20px;
-
-    top: 40px;
-}
-
 
 /* =========================================
-   MEDICAL CARDS
+   DOCTOR / SYRINGE IMAGE
 ========================================= */
 
-.medical-card {
-    position: absolute;
-
-    z-index: 5;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    background-color: #FFFFFF;
-
-    padding: 12px 16px;
-
-    border-radius: 12px;
-
-    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
-
-    border: 1px solid #E2E8F0;
-}
-
-
-.medical-card strong {
-    display: block;
-
-    color: #0F172A;
-
-    font-size: 11px;
-
-    font-weight: 700;
-}
-
-
-.medical-card span {
-    display: block;
-
-    color: #94A3B8;
-
-    font-size: 9px;
-
-    margin-top: 2px;
-}
-
-
-.card-top {
-    top: 70px;
-
-    right: 15px;
-}
-
-
-.card-bottom {
-    bottom: 65px;
-
-    left: 15px;
-}
-
-
-/* ---------- Small Icon ---------- */
-
-.small-icon {
-    width: 30px;
-    height: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background-color: #DCFCE7;
-
-    color: #16A34A;
-
-    border-radius: 8px;
-
-    font-size: 14px;
-
-    font-weight: 800;
-}
-
-
-/* ---------- Calendar ---------- */
-
-.calendar-icon {
-    width: 30px;
-    height: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background-color: #EFF6FF;
-
-    border-radius: 8px;
-
-    font-size: 14px;
-}
-
-
-/* =========================================
-   SIMPLE MEDICAL ILLUSTRATION
-========================================= */
-
-.doctor-illustration {
-    width: 280px;
-    height: 390px;
-
+.hero-doctor-image {
     position: relative;
-
-    z-index: 3;
-
-    margin-top: 40px;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
-
-/* ---------- Head ---------- */
-
-.person-head {
-    width: 90px;
-    height: 100px;
-
-    background-color: #F2B8A2;
-
-    border-radius: 48% 48% 45% 45%;
-
-    position: absolute;
-
-    top: 38px;
-    left: 95px;
-
-    z-index: 3;
-}
-
-
-/* ---------- Hair ---------- */
-
-.person-head::before {
+.hero-visual::after {
     content: "";
-
     position: absolute;
-
-    width: 94px;
-    height: 48px;
-
-    top: -7px;
-    left: -2px;
-
-    background-color: #1E293B;
-
-    border-radius: 50px 50px 25px 25px;
-}
-
-
-/* ---------- Body ---------- */
-
-.person-body {
-    width: 150px;
-    height: 190px;
-
-    background-color: #2563EB;
-
-    border-radius: 70px 70px 20px 20px;
-
-    position: absolute;
-
-    top: 130px;
-    left: 65px;
-}
-
-
-/* ---------- Shirt detail ---------- */
-
-.person-body::after {
-    content: "+";
-
-    position: absolute;
-
-    top: 42px;
-    left: 60px;
-
-    color: #FFFFFF;
-
-    font-size: 28px;
-
-    font-weight: 300;
-}
-
-
-/* ---------- Arms ---------- */
-
-.person-arm {
-    width: 35px;
-    height: 125px;
-
-    background-color: #F2B8A2;
-
-    border-radius: 30px;
-
-    position: absolute;
-
-    top: 25px;
-}
-
-
-.left-arm {
-    left: -23px;
-
-    transform: rotate(25deg);
-}
-
-
-.right-arm {
-    right: -23px;
-
-    transform: rotate(-25deg);
+    z-index: 5;
+    right: -2px;
+    top: 42%;
+    width: 82px;
+    height: 105px;
+    background: #ffffff;
+    border-radius: 50%;
 }
 
 
 /* =========================================
-   VACCINE
+   HERO IMAGE ANIMATION
 ========================================= */
 
-.vaccine {
-    width: 45px;
-    height: 120px;
+@keyframes doctorImageFloat {
 
-    position: absolute;
+    0% {
+        transform: translateY(0);
+    }
 
-    top: 120px;
+    50% {
+        transform: translateY(-8px);
+    }
 
-    right: 18px;
+    100% {
+        transform: translateY(0);
+    }
 
-    transform: rotate(25deg);
-
-    z-index: 10;
-}
-
-
-.vaccine-top {
-    width: 18px;
-    height: 30px;
-
-    margin: 0 auto;
-
-    background-color: #CBD5E1;
-
-    border-radius: 4px 4px 0 0;
-}
-
-
-.vaccine-body {
-    width: 38px;
-    height: 70px;
-
-    margin: auto;
-
-    background-color: #FFFFFF;
-
-    border: 2px solid #94A3B8;
-
-    border-radius: 5px;
-}
-
-
-.vaccine-liquid {
-    width: 28px;
-    height: 38px;
-
-    background-color: #60A5FA;
-
-    position: absolute;
-
-    left: 8px;
-    bottom: 10px;
-
-    border-radius: 2px;
 }
 
 
@@ -1276,37 +910,94 @@ a {
    RESPONSIVE HERO
 ========================================= */
 
-@media (max-width: 950px) {
+@media (max-width: 1200px) {
 
     .hero-container {
-        gap: 30px;
+        width: 94%;
+
+        grid-template-columns: 45% 55%;
+    }
+
+    .hero-content {
+        padding-left: 10px;
     }
 
     .hero-content h1 {
-        font-size: 44px;
+        font-size: 52px;
     }
 
-    .hero-visual {
-        transform: scale(0.9);
+    .hero-content > p {
+        font-size: 15px;
+    }
+
+    .hero-doctor-image {
+        max-width: 780px;
     }
 
 }
 
 
-@media (max-width: 750px) {
+@media (max-width: 1000px) {
+
+    .hero {
+        min-height: auto;
+    }
 
     .hero-container {
-        flex-direction: column;
+        min-height: auto;
 
-        text-align: center;
+        grid-template-columns: 1fr;
 
-        padding: 50px 0;
+        padding-top: 55px;
+
+        padding-bottom: 50px;
     }
 
     .hero-content {
-        width: 100%;
+        padding-left: 0;
 
-        padding: 20px 0;
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        max-width: 700px;
+
+        margin: 0 auto;
+    }
+
+    .hero-line {
+        margin-left: auto;
+
+        margin-right: auto;
+    }
+
+    .hero-content > p {
+        margin-left: auto;
+
+        margin-right: auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-dots {
+        justify-content: center;
+    }
+
+    .hero-visual {
+        min-height: 450px;
+
+        margin-top: 20px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .hero-container {
+        width: calc(100% - 32px);
     }
 
     .hero-content h1 {
@@ -1316,56 +1007,853 @@ a {
     }
 
     .hero-content > p {
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .hero-buttons {
-        justify-content: center;
-    }
-
-    .hero-trust {
-        justify-content: center;
-    }
-
-    .hero-visual {
-        width: 100%;
-
-        min-height: 450px;
-    }
-
-}
-
-
-@media (max-width: 500px) {
-
-    .hero-content h1 {
-        font-size: 34px;
-    }
-
-    .hero-content > p {
         font-size: 14px;
     }
 
     .hero-buttons {
         flex-direction: column;
-
-        width: 100%;
     }
 
     .hero-primary-btn,
     .hero-secondary-btn {
         width: 100%;
+
+        max-width: 300px;
     }
 
     .hero-visual {
-        transform: scale(0.8);
-
-        margin-top: -30px;
+        min-height: 330px;
     }
 
 }
 
+/* =========================================
+   HERO SLIDE 1 - ENTRANCE ANIMATIONS
+========================================= */
+
+/* Small heading / badge */
+.hero-badge {
+    animation: heroFadeUp 0.65s ease both;
+}
+
+/* Main heading */
+.hero-content h1 {
+    animation: heroFadeUp 0.75s ease 0.12s both;
+}
+
+/* Teal line */
+.hero-line {
+    transform-origin: left center;
+    animation: heroLineGrow 0.65s ease 0.35s both;
+}
+
+/* Description */
+.hero-content > p {
+    animation: heroFadeUp 0.7s ease 0.42s both;
+}
+
+/* Buttons */
+.hero-buttons {
+    animation: heroFadeUp 0.7s ease 0.55s both;
+}
+
+/* Carousel dots */
+.hero-dots {
+    animation: heroFadeUp 0.6s ease 0.68s both;
+}
+
+/* Doctor visual */
+.hero-visual {
+    animation: heroVisualEntrance 0.9s ease 0.18s both;
+}
+
+.hero-doctor-image {
+    animation:
+        doctorEntrance 0.9s ease 0.18s both,
+        doctorFloating 4.5s ease-in-out 1.1s infinite;
+}
+
+
+/* =========================================
+   KEYFRAMES
+========================================= */
+
+@keyframes heroFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+@keyframes heroLineGrow {
+    from {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+    }
+}
+
+
+@keyframes heroVisualEntrance {
+    from {
+        opacity: 0;
+        transform: translateX(45px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+@keyframes doctorEntrance {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+@keyframes doctorFloating {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+
+/* =========================================
+   HOME PAGE - WHY CHOOSE IMMUNICARE
+   SIMPLE CARD DESIGN
+========================================= */
+
+.home-features {
+    width: 100%;
+    padding: 100px 0 110px;
+
+    background: #f8fafc;
+
+    position: relative;
+    overflow: hidden;
+}
+
+.home-features-container {
+    width: 92%;
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    position: relative;
+    z-index: 2;
+}
+
+
+/* =========================================
+   SECTION HEADING
+========================================= */
+
+.home-section-heading {
+    text-align: center;
+
+    max-width: 800px;
+
+    margin: 0 auto 60px;
+}
+
+.home-section-label {
+    display: inline-block;
+
+    padding: 9px 18px;
+
+    margin-bottom: 20px;
+
+    background: #eff6ff;
+
+    border: 1px solid #dbeafe;
+
+    border-radius: 30px;
+
+    color: #2563eb;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+}
+
+.home-section-heading h2 {
+    margin: 0;
+
+    color: #0f234d;
+
+    font-size: clamp(36px, 4vw, 52px);
+
+    line-height: 1.12;
+
+    letter-spacing: -1.5px;
+
+    font-weight: 800;
+}
+
+.home-section-heading h2 span {
+    display: block;
+
+    color: #2563eb;
+}
+
+.home-section-heading p {
+    max-width: 680px;
+
+    margin: 22px auto 0;
+
+    color: #64749b;
+
+    font-size: 17px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   FEATURE GRID
+========================================= */
+
+.home-feature-grid {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 24px;
+}
+
+
+/* =========================================
+   NORMAL RECTANGULAR CARDS
+========================================= */
+
+.home-feature-card {
+    min-height: 300px;
+
+    padding: 32px 28px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2eaf5;
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 12px 30px rgba(15, 35, 77, 0.06);
+
+    position: relative;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.home-feature-card:hover {
+    transform: translateY(-7px);
+
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 20px 40px rgba(37, 99, 235, 0.12);
+}
+
+
+/* =========================================
+   ICON
+========================================= */
+
+.home-feature-icon {
+    width: 74px;
+    height: 74px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 24px;
+
+    border-radius: 20px;
+}
+
+.home-feature-icon svg {
+    width: 50px;
+    height: 50px;
+
+    display: block;
+}
+
+
+/* Icon backgrounds */
+
+.feature-blue .home-feature-icon {
+    background: #eff6ff;
+}
+
+.feature-teal .home-feature-icon {
+    background: #ecfdf5;
+}
+
+.feature-indigo .home-feature-icon {
+    background: #eef2ff;
+}
+
+.feature-orange .home-feature-icon {
+    background: #fffbeb;
+}
+
+
+/* =========================================
+   DECORATIVE SPARKS
+========================================= */
+
+.home-feature-spark {
+    position: absolute;
+
+    top: 35px;
+    left: 126px;
+
+    width: 30px;
+    height: 30px;
+}
+
+.home-feature-spark span {
+    display: block;
+
+    position: absolute;
+
+    width: 14px;
+    height: 4px;
+
+    border-radius: 10px;
+
+    background: #2563eb;
+
+    transform-origin: left center;
+}
+
+.home-feature-spark span:nth-child(1) {
+    top: 1px;
+    left: 7px;
+
+    transform: rotate(-58deg);
+}
+
+.home-feature-spark span:nth-child(2) {
+    top: 12px;
+    left: 13px;
+
+    transform: rotate(-20deg);
+}
+
+.home-feature-spark span:nth-child(3) {
+    top: 23px;
+    left: 8px;
+
+    transform: rotate(25deg);
+}
+
+.feature-teal .home-feature-spark span {
+    background: #14b8a6;
+}
+
+.feature-orange .home-feature-spark span {
+    background: #f59e0b;
+}
+
+
+/* =========================================
+   CARD TEXT
+========================================= */
+
+.home-feature-card h3 {
+    margin: 0 0 12px;
+
+    color: #0f234d;
+
+    font-size: 20px;
+
+    line-height: 1.3;
+
+    font-weight: 800;
+
+    letter-spacing: -0.3px;
+}
+
+.home-feature-card p {
+    max-width: 270px;
+
+    margin: 0;
+
+    color: #64749b;
+
+    font-size: 15.5px;
+
+    line-height: 1.65;
+}
+
+
+/* =========================================
+   ROUND ARROW
+========================================= */
+
+.home-feature-arrow {
+    position: absolute;
+
+    right: 25px;
+    bottom: 25px;
+
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    font-size: 22px;
+
+    line-height: 1;
+
+    box-shadow:
+        0 7px 18px rgba(37, 99, 235, 0.18);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.feature-blue .home-feature-arrow {
+    background: #3b82f6;
+}
+
+.feature-teal .home-feature-arrow {
+    background: #14b8a6;
+}
+
+.feature-indigo .home-feature-arrow {
+    background: #2563eb;
+}
+
+.feature-orange .home-feature-arrow {
+    background: #f59e0b;
+}
+
+.home-feature-card:hover .home-feature-arrow {
+    transform: translateX(4px);
+
+    box-shadow:
+        0 10px 22px rgba(37, 99, 235, 0.25);
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+
+    .home-feature-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .home-features {
+        padding: 75px 0 90px;
+    }
+
+    .home-section-heading {
+        margin-bottom: 45px;
+    }
+
+    .home-section-heading h2 {
+        font-size: 34px;
+    }
+
+    .home-section-heading p {
+        font-size: 15px;
+    }
+
+    .home-feature-grid {
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+    }
+
+    .home-feature-card {
+        min-height: 290px;
+
+        padding: 28px 25px;
+    }
+
+}
+
+/* Hide arrows from Why ImmuniCare cards */
+.home-feature-arrow {
+    display: none;
+}
+
+/* =========================================
+   HOME PAGE - VACCINATION SERVICES
+========================================= */
+
+.home-services {
+    width: 100%;
+
+    padding: 110px 0;
+
+    background: #ffffff;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.home-services-container {
+    width: 92%;
+    max-width: 1250px;
+
+    margin: 0 auto;
+
+    display: grid;
+
+    grid-template-columns: 42% 58%;
+
+    align-items: center;
+
+    gap: 70px;
+}
+
+
+/* =========================================
+   LEFT CONTENT
+========================================= */
+
+.home-services-content {
+    max-width: 510px;
+}
+
+.home-services-label {
+    display: inline-block;
+
+    padding: 8px 17px;
+
+    margin-bottom: 20px;
+
+    background: #eff6ff;
+
+    border: 1px solid #dbeafe;
+
+    border-radius: 30px;
+
+    color: #2563eb;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+}
+
+.home-services-content h2 {
+    margin: 0;
+
+    color: #0f234d;
+
+    font-size: clamp(38px, 4vw, 54px);
+
+    line-height: 1.1;
+
+    letter-spacing: -1.6px;
+
+    font-weight: 800;
+}
+
+.home-services-content h2 span {
+    display: block;
+
+    color: #2563eb;
+}
+
+.home-services-content > p {
+    max-width: 490px;
+
+    margin: 24px 0 30px;
+
+    color: #64749b;
+
+    font-size: 17px;
+
+    line-height: 1.65;
+}
+
+
+/* =========================================
+   GET STARTED BUTTON
+========================================= */
+
+.home-services-btn {
+    min-width: 190px;
+
+    height: 58px;
+
+    padding: 0 25px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 18px;
+
+    background: #2563eb;
+
+    border-radius: 30px;
+
+    color: #ffffff;
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    box-shadow:
+        0 12px 25px rgba(37, 99, 235, 0.2);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.home-services-btn span {
+    font-size: 21px;
+
+    transition: transform 0.3s ease;
+}
+
+.home-services-btn:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 16px 30px rgba(37, 99, 235, 0.28);
+}
+
+.home-services-btn:hover span {
+    transform: translateX(4px);
+}
+
+
+/* =========================================
+   SERVICES LIST
+========================================= */
+
+.home-services-list {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 20px;
+}
+
+
+/* =========================================
+   SERVICE ITEM
+========================================= */
+
+.home-service-item {
+    min-height: 190px;
+
+    padding: 27px 25px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5edf8;
+
+    border-radius: 22px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.home-service-item:hover {
+    transform: translateY(-6px);
+
+    border-color: #bfdbfe;
+
+    box-shadow:
+        0 15px 35px rgba(37, 99, 235, 0.09);
+}
+
+
+/* =========================================
+   SERVICE ICON
+========================================= */
+
+.home-service-icon {
+    width: 58px;
+
+    height: 58px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 17px;
+
+    border-radius: 17px;
+
+    font-size: 26px;
+}
+
+.service-blue {
+    background: #eff6ff;
+}
+
+.service-teal {
+    background: #ecfdf5;
+}
+
+.service-indigo {
+    background: #eef2ff;
+}
+
+.service-yellow {
+    background: #fffbeb;
+}
+
+
+/* =========================================
+   SERVICE TEXT
+========================================= */
+
+.home-service-text h3 {
+    margin: 0 0 8px;
+
+    color: #0f234d;
+
+    font-size: 18px;
+
+    line-height: 1.35;
+
+    font-weight: 800;
+}
+
+.home-service-text p {
+    margin: 0;
+
+    color: #64749b;
+
+    font-size: 14.5px;
+
+    line-height: 1.55;
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+
+    .home-services-container {
+        grid-template-columns: 1fr;
+
+        gap: 55px;
+    }
+
+    .home-services-content {
+        max-width: 700px;
+
+        text-align: center;
+
+        margin: 0 auto;
+    }
+
+    .home-services-content > p {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .home-services {
+        padding: 80px 0;
+    }
+
+    .home-services-container {
+        width: 88%;
+    }
+
+    .home-services-content h2 {
+        font-size: 35px;
+
+        letter-spacing: -1px;
+    }
+
+    .home-services-content > p {
+        font-size: 15px;
+    }
+
+    .home-services-list {
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+    .home-service-item {
+        min-height: 170px;
+    }
+
+}
 /* =========================================
    AUTHENTICATION / REGISTRATION (PARENT)
 ========================================= */
@@ -3726,3 +4214,257 @@ a {
     }
 
 }
+
+/* =========================================
+   UPCOMING VACCINATION CARD
+   ========================================= */
+
+.upcoming-vaccination-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+
+.upcoming-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+.upcoming-card-label {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+
+.upcoming-card-header h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+
+.upcoming-vaccine-main {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 25px 0;
+}
+
+
+.upcoming-vaccine-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 15px;
+    background: #ecfdf5;
+    color: #16a34a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+
+.upcoming-vaccine-info {
+    flex: 1;
+}
+
+
+.upcoming-child-label {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+
+.upcoming-vaccine-info h4 {
+    margin: 0 0 5px;
+    color: #0f172a;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+
+.upcoming-vaccine-info p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+}
+
+
+.upcoming-status {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #ecfdf5;
+    color: #15803d;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+.upcoming-vaccine-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    padding-top: 22px;
+    border-top: 1px solid #e2e8f0;
+}
+
+
+.upcoming-detail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+.upcoming-detail-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+
+.upcoming-detail span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+
+.upcoming-detail strong {
+    display: block;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+@media (max-width: 700px) {
+
+    .upcoming-card-header {
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+
+    .upcoming-vaccine-main {
+        align-items: flex-start;
+    }
+
+
+    .upcoming-status {
+        margin-left: auto;
+    }
+
+
+    .upcoming-vaccine-details {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+/* =========================================================
+   NOTIFICATION DROPDOWN
+========================================================= */
+
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-dropdown {
+    display: none;
+    position: absolute;
+    top: 48px;
+    right: 0;
+    width: 360px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: block;
+}
+
+.notification-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-dropdown-header strong {
+    font-size: 16px;
+    color: #0f172a;
+}
+
+.notification-dropdown-header span {
+    font-size: 13px;
+    color: #0f766e;
+    font-weight: 600;
+}
+
+.notification-item {
+    padding: 15px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item strong {
+    display: block;
+    font-size: 14px;
+    color: #0f172a;
+    margin-bottom: 5px;
+}
+
+.notification-item p {
+    margin: 0 0 7px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #475569;
+}
+
+.notification-item small {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.notification-empty {
+    padding: 25px 18px;
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+}
+

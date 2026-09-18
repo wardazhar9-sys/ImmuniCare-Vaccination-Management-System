@@ -89,13 +89,62 @@ if (isset($_POST["book_appointment"])) {
         $status
     );
 
-    if (mysqli_stmt_execute($stmt)) {
-        $message = "Appointment booked successfully! Your booking is now pending hospital approval.";
-        $message_type = "success";
-    } else {
-        $message = "Something went wrong. Please try again.";
-        $message_type = "error";
+if (mysqli_stmt_execute($stmt)) {
+
+    // Get the hospital's user ID
+    $hospital_query = "SELECT user_id
+                       FROM hospitals
+                       WHERE id = '$hospital_id'";
+
+    $hospital_result = mysqli_query($conn, $hospital_query);
+
+    if ($hospital_result && mysqli_num_rows($hospital_result) > 0) {
+
+        $hospital = mysqli_fetch_assoc($hospital_result);
+        $hospital_user_id = $hospital["user_id"];
+
+        // Get the child's name
+        $child_query = "SELECT child_name
+                        FROM children
+                        WHERE id = '$child_id'
+                        AND parent_id = '$parent_id'";
+
+        $child_result = mysqli_query($conn, $child_query);
+
+        $child = mysqli_fetch_assoc($child_result);
+        $child_name = $child["child_name"];
+
+        // Create notification for hospital
+        $notification_query = "INSERT INTO notifications
+                               (user_id, title, message, type)
+                               VALUES (?, ?, ?, ?)";
+
+        $notification_stmt = mysqli_prepare($conn, $notification_query);
+
+        $title = "New Appointment";
+        $notification_message = "A new vaccination appointment has been booked for " . $child_name . ".";
+        $type = "appointment";
+
+        mysqli_stmt_bind_param(
+            $notification_stmt,
+            "isss",
+            $hospital_user_id,
+            $title,
+            $notification_message,
+            $type
+        );
+
+        mysqli_stmt_execute($notification_stmt);
+        mysqli_stmt_close($notification_stmt);
     }
+
+    $message = "Appointment booked successfully! Your booking is now pending hospital approval.";
+    $message_type = "success";
+
+} else {
+    $message = "Something went wrong. Please try again.";
+    $message_type = "error";
+}
 
       mysqli_stmt_close($stmt);
 }

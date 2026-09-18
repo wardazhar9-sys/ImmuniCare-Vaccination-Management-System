@@ -1,28 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <nav class="navbar">
-
+<nav class="navbar">
     <div class="navbar-container">
 
-        <!-- Logo / Brand -->
+        <!-- HOME A LOGO -->
         <a href="index.php" class="brand">
-
             <img
                 src="assets/images/immunicare-logo-header.svg"
                 alt="ImmuniCare"
                 class="brand-image"
             >
-
         </a>
 
-
-        <!-- Navigation Links -->
+        <!-- HOME A NAVIGATION LINKS -->
         <div class="nav-links">
 
             <a href="index.php" class="active">Home</a>
@@ -37,8 +25,7 @@
 
         </div>
 
-
-        <!-- Authentication Buttons -->
+        <!-- HOME B BUTTONS -->
         <div class="nav-buttons">
 
             <a href="login.php" class="login-btn">
@@ -52,7 +39,4 @@
         </div>
 
     </div>
-
 </nav>
-</body>
-</html>
