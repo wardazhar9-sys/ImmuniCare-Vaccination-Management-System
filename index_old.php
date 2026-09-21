@@ -483,5 +483,171 @@ include("includes/navbar.php");
 
 </section>
     
+
+
+
+<!-- =========================================
+     HOW IMMUNICARE WORKS
+========================================= -->
+
+<section class="home-how-it-works">
+
+    <div class="home-how-container">
+
+        <!-- SECTION HEADING -->
+
+        <div class="home-how-heading">
+
+            <div class="home-how-label">
+                HOW IT WORKS
+            </div>
+
+            <h2>
+                Simple Steps to Better
+                <span>Vaccination Care</span>
+            </h2>
+
+            <p>
+                ImmuniCare makes it easy to manage your child's
+                vaccination journey from start to finish.
+            </p>
+
+        </div>
+
+
+        <!-- THREE STEPS -->
+
+        <div class="home-how-steps">
+
+
+            <!-- STEP 1 -->
+
+            <div class="home-how-step">
+
+                <div class="home-how-number">
+                    01
+                </div>
+
+                <div class="home-how-icon">
+                    <span>👶</span>
+                </div>
+
+                <h3>
+                    Register Your Child
+                </h3>
+
+                <p>
+                    Add your child's basic information and
+                    create their vaccination profile.
+                </p>
+
+            </div>
+
+
+            <!-- STEP 2 -->
+
+            <div class="home-how-step">
+
+                <div class="home-how-number">
+                    02
+                </div>
+
+                <div class="home-how-icon">
+                    <span>📅</span>
+                </div>
+
+                <h3>
+                    Book a Vaccination
+                </h3>
+
+                <p>
+                    Select the required vaccine and book
+                    an appointment with an available hospital.
+                </p>
+
+            </div>
+
+
+            <!-- STEP 3 -->
+
+            <div class="home-how-step">
+
+                <div class="home-how-number">
+                    03
+                </div>
+
+                <div class="home-how-icon">
+                    <span>🛡️</span>
+                </div>
+
+                <h3>
+                    Track & Stay Protected
+                </h3>
+
+                <p>
+                    Keep track of vaccination records,
+                    upcoming doses, and appointments.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================
+     CALL TO ACTION
+========================================= -->
+
+<section class="home-cta">
+
+    <div class="home-cta-container">
+
+        <div class="home-cta-content">
+
+            <div class="home-cta-label">
+                GET STARTED TODAY
+            </div>
+
+            <h2>
+                Give Your Child a
+                <span>Healthier Tomorrow</span>
+            </h2>
+
+            <p>
+                Start managing your child's vaccination journey
+                with ImmuniCare. Keep records organized, book
+                appointments, and stay on track with ease.
+            </p>
+
+            <div class="home-cta-buttons">
+
+                <a href="register.php" class="home-cta-primary">
+                    Get Started
+                    <span>→</span>
+                </a>
+
+                <a href="about.php" class="home-cta-secondary">
+                    Learn More
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+
+<?php include("includes/footer.php"); ?>
+
+
 </body>
 </html>

@@ -1,31 +1,70 @@
+<?php
+
+$current_page = basename($_SERVER['PHP_SELF']);
+
+?>
+
 <nav class="navbar">
+
     <div class="navbar-container">
 
-        <!-- HOME A LOGO -->
-        <a href="index.php" class="brand">
+        <!-- IMMUNICARE LOGO -->
+
+        <a href="index_old.php" class="brand">
+
             <img
                 src="assets/images/immunicare-logo-header.svg"
                 alt="ImmuniCare"
                 class="brand-image"
             >
+
         </a>
 
-        <!-- HOME A NAVIGATION LINKS -->
+
+        <!-- NAVIGATION LINKS -->
+
         <div class="nav-links">
 
-            <a href="index.php" class="active">Home</a>
+            <a
+                href="index_old.php"
+                class="<?php echo ($current_page == 'index.php') ? 'active' : ''; ?>"
+            >
+                Home
+            </a>
 
-            <a href="vaccines.php">Vaccines</a>
+            <a
+                href="vaccines.php"
+                class="<?php echo ($current_page == 'vaccines.php') ? 'active' : ''; ?>"
+            >
+                Vaccines
+            </a>
 
-            <a href="hospitals.php">Hospitals</a>
+            <a
+                href="hospitals.php"
+                class="<?php echo ($current_page == 'hospitals.php') ? 'active' : ''; ?>"
+            >
+                Hospitals
+            </a>
 
-            <a href="about.php">About Us</a>
+            <a
+                href="about.php"
+                class="<?php echo ($current_page == 'about.php') ? 'active' : ''; ?>"
+            >
+                About Us
+            </a>
 
-            <a href="contact.php">Contact</a>
+            <a
+                href="contact.php"
+                class="<?php echo ($current_page == 'contact.php') ? 'active' : ''; ?>"
+            >
+                Contact
+            </a>
 
         </div>
 
-        <!-- HOME B BUTTONS -->
+
+        <!-- LOGIN / REGISTER BUTTONS -->
+
         <div class="nav-buttons">
 
             <a href="login.php" class="login-btn">
@@ -39,4 +78,5 @@
         </div>
 
     </div>
+
 </nav>

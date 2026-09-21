@@ -5,6 +5,12 @@ include("config/db.php");
 $message = "";
 $message_type = "";
 
+$name = "";
+$email = "";
+$password = "";
+$confirm_password = "";
+$role = "";
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Get form data
@@ -16,7 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // Check if all fields are filled
-    if (empty($name) || empty($email) || empty($password) || empty($confirm_password) || empty($role)) {
+    if (
+        empty($name) ||
+        empty($email) ||
+        empty($password) ||
+        empty($confirm_password) ||
+        empty($role)
+    ) {
 
         $message = "Please fill in all fields.";
         $message_type = "error";
@@ -67,7 +79,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $check_stmt = mysqli_prepare($conn, $check_sql);
 
-        mysqli_stmt_bind_param($check_stmt, "s", $email);
+        mysqli_stmt_bind_param(
+            $check_stmt,
+            "s",
+            $email
+        );
 
         mysqli_stmt_execute($check_stmt);
 
@@ -84,14 +100,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         else {
 
             // Hash the password
-            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $hashed_password = password_hash(
+                $password,
+                PASSWORD_DEFAULT
+            );
 
 
             // Insert user into users table
-            $insert_sql = "INSERT INTO users (name, email, password, role)
+            $insert_sql = "INSERT INTO users
+                           (name, email, password, role)
                            VALUES (?, ?, ?, ?)";
 
-            $insert_stmt = mysqli_prepare($conn, $insert_sql);
+            $insert_stmt = mysqli_prepare(
+                $conn,
+                $insert_sql
+            );
 
             mysqli_stmt_bind_param(
                 $insert_stmt,
@@ -111,6 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Clear name and email after successful registration
                 $name = "";
                 $email = "";
+                $role = "";
 
             }
 
@@ -132,6 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -141,183 +166,336 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Create Account - ImmuniCare</title>
 
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
 
 </head>
 
 
-<body>
-
-<?php include("includes/navbar.php"); ?>
+<body class="register-body">
 
 
-<main class="auth-page">
+<main class="register-page">
 
-    <div class="auth-container">
 
-        <div class="auth-card">
+    <!-- =========================================
+         LEFT SIDE - REGISTRATION FORM
+    ========================================== -->
 
-            <div class="auth-header">
+    <section class="register-form-side">
 
-                <h1>Create Your Account</h1>
+        <div class="register-form-container">
+
+
+            <!-- HOME LINK -->
+
+            <a
+                href="index_old.php"
+                class="register-home-link"
+            >
+                <span>‹</span>
+                Home Page
+            </a>
+
+
+            <!-- FORM HEADER -->
+
+            <div class="register-heading">
+
+                <h1>
+                    Create Your Account
+                </h1>
 
                 <p>
-                    Join ImmuniCare and manage your vaccination journey with ease.
+                    Join ImmuniCare and manage your vaccination
+                    journey with ease.
                 </p>
 
             </div>
 
 
-            <?php
+            <!-- MESSAGE -->
 
-            if (!empty($message)) {
+            <?php if (!empty($message)) { ?>
 
-                echo '<div class="message toast ' . $message_type . '" role="alert">';
-                echo htmlspecialchars($message);
-                echo '</div>';
+                <div
+                    class="register-message <?php echo $message_type; ?>"
+                    role="alert"
+                >
+                    <?php echo htmlspecialchars($message); ?>
+                </div>
 
-            }
-
-            ?>
-
-
-            <form method="POST" action="">
+            <?php } ?>
 
 
-                <div class="form-group">
+            <!-- REGISTRATION FORM -->
+
+            <form
+                method="POST"
+                action=""
+                class="register-form"
+            >
+
+
+                <!-- FULL NAME -->
+
+                <div class="register-field">
 
                     <label for="name">
                         Full Name
                     </label>
 
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        placeholder="Enter your full name"
-                        value="<?php echo isset($name) ? htmlspecialchars($name) : ''; ?>"
-                        required
-                    >
+                    <div class="register-input-wrapper">
 
-                </div>
+                        <span class="register-input-icon">
+                            ♙
+                        </span>
 
-
-                <div class="form-group">
-
-                    <label for="email">
-                        Email Address
-                    </label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Enter your email address"
-                        value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="password">
-                        Password
-                    </label>
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Create a password"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="confirm_password">
-                        Confirm Password
-                    </label>
-
-                    <input
-                        type="password"
-                        id="confirm_password"
-                        name="confirm_password"
-                        placeholder="Confirm your password"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        Account Type
-                    </label>
-
-                    <div class="role-options">
-
-                        <label class="role-option">
-
-                            <input
-                                type="radio"
-                                name="role"
-                                value="parent"
-                                required
-                            >
-
-                            <span>Parent</span>
-
-                        </label>
-
-
-                        <label class="role-option">
-
-                            <input
-                                type="radio"
-                                name="role"
-                                value="hospital"
-                            >
-
-                            <span>Hospital</span>
-
-                        </label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            placeholder="Enter your full name"
+                            value="<?php echo htmlspecialchars($name); ?>"
+                            required
+                        >
 
                     </div>
 
                 </div>
 
 
-                <button type="submit" class="auth-btn">
-                    Create Account
+                <!-- EMAIL -->
+
+                <div class="register-field">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <div class="register-input-wrapper">
+
+                        <span class="register-input-icon">
+                            @
+                        </span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email address"
+                            value="<?php echo htmlspecialchars($email); ?>"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="register-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="register-input-wrapper">
+
+                        <span class="register-input-icon">
+                            ◈
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Create a password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- CONFIRM PASSWORD -->
+
+                <div class="register-field">
+
+                    <label for="confirm_password">
+                        Confirm Password
+                    </label>
+
+                    <div class="register-input-wrapper">
+
+                        <span class="register-input-icon">
+                            ◈
+                        </span>
+
+                        <input
+                            type="password"
+                            id="confirm_password"
+                            name="confirm_password"
+                            placeholder="Confirm your password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCOUNT TYPE -->
+
+                <div class="register-field">
+
+                    <label for="role">
+                        Account Type
+                    </label>
+
+                    <div class="register-input-wrapper">
+
+                        <span class="register-input-icon">
+                            ♙
+                        </span>
+
+                        <select
+                            id="role"
+                            name="role"
+                            required
+                        >
+
+                            <option
+                                value=""
+                                disabled
+                                <?php echo empty($role) ? "selected" : ""; ?>
+                            >
+                                Select account type
+                            </option>
+
+                            <option
+                                value="parent"
+                                <?php echo ($role === "parent") ? "selected" : ""; ?>
+                            >
+                                Parent
+                            </option>
+
+                            <option
+                                value="hospital"
+                                <?php echo ($role === "hospital") ? "selected" : ""; ?>
+                            >
+                                Hospital
+                            </option>
+
+                        </select>
+
+                        <span class="register-select-arrow">
+                            ↓
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TERMS -->
+
+                <label class="register-terms">
+
+                    <input
+                        type="checkbox"
+                        required
+                    >
+
+                    <span>
+                        I accept the
+                        <a href="#" onclick="return false;">
+                            terms of the agreement
+                        </a>
+                    </span>
+
+                </label>
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="register-submit"
+                >
+
+                    <span>
+                        Sign Up
+                    </span>
+
+                    <span class="register-submit-arrow">
+                        →
+                    </span>
+
                 </button>
 
 
             </form>
 
+        </div>
 
-            <div class="auth-footer">
+    </section>
 
-                <p>
-                    Already have an account?
-                    <a href="login.php">Login</a>
-                </p>
+
+    <!-- =========================================
+         RIGHT SIDE - GET STARTED
+    ========================================== -->
+
+    <section class="register-side">
+
+        <div class="register-side-content">
+
+            <h2>
+                Get <span>Started</span>
+            </h2>
+
+            <p>
+                Already have an account?
+            </p>
+
+            <a
+                href="login.php"
+                class="register-login-button"
+            >
+                Log in
+            </a>
+
+
+            <div class="register-divider"></div>
+
+
+            <div class="register-slogan">
+
+                <span>
+                    PROTECTING
+                </span>
+
+                <strong>
+                    BRIGHTER TOMORROWS
+                </strong>
 
             </div>
 
-
         </div>
 
-    </div>
+    </section>
+
 
 </main>
 

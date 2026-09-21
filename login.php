@@ -108,33 +108,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </head>
 
-<body>
+<body class="login-body">
 
-<?php
-include("includes/navbar.php");
-?>
+<div class="login-page">
 
-<div class="auth-page">
+    <!-- LEFT BLUE PANEL -->
 
-    <div class="auth-container">
+    <div class="login-side">
 
-        <div class="auth-card">
+        <div class="login-side-content">
 
-            <div class="auth-header">
+            <h2>
+                Welcome <span>Back</span>
+            </h2>
+
+            <p>
+                Login to continue your ImmuniCare journey.
+            </p>
+
+            <div class="login-side-line"></div>
+
+            <div class="login-tagline">
+                <span>PROTECTING</span>
+                <strong>BRIGHTER TOMORROWS</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT LOGIN FORM -->
+
+    <div class="login-form-side">
+
+        <div class="login-form-container">
+
+            <a href="index_old.php" class="login-home-link">
+                <span>‹</span>
+                Home Page
+            </a>
+
+
+            <div class="login-heading">
 
                 <h1>Welcome Back</h1>
 
-                <p>Login to your ImmuniCare account</p>
+                <p>
+                    Login to your ImmuniCare account
+                </p>
 
             </div>
 
 
             <?php if (!empty($message)) { ?>
 
-                <div class="message toast <?php echo htmlspecialchars($message_type); ?>" role="alert">
-
+                <div
+                    class="message toast <?php echo htmlspecialchars($message_type); ?>"
+                    role="alert"
+                >
                     <?php echo htmlspecialchars($message); ?>
-
                 </div>
 
             <?php } ?>
@@ -142,52 +175,82 @@ include("includes/navbar.php");
 
             <form method="POST" action="">
 
-                <div class="form-group">
+                <!-- EMAIL -->
 
-                    <label for="email">Email Address</label>
+                <div class="login-field">
 
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        placeholder="Enter your email address"
-                        value="<?php echo htmlspecialchars($email ?? ''); ?>"
-                        required
-                    >
+                    <label for="email">
+                        Email Address
+                    </label>
 
-                </div>
+                    <div class="login-input-wrapper">
 
+                        <span class="login-input-icon">
+                            ✉
+                        </span>
 
-                <div class="form-group">
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email address"
+                            value="<?php echo htmlspecialchars($email ?? ''); ?>"
+                            required
+                        >
 
-                    <label for="password">Password</label>
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Enter your password"
-                        required
-                    >
+                    </div>
 
                 </div>
 
 
-                <button type="submit" class="auth-btn">
-                    Login
+                <!-- PASSWORD -->
+
+                <div class="login-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="login-input-wrapper">
+
+                        <span class="login-input-icon">
+                            ◆
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOGIN BUTTON -->
+
+                <button
+                    type="submit"
+                    class="login-submit"
+                >
+                    Log In
+                    <span>→</span>
                 </button>
 
             </form>
 
 
-            <div class="auth-footer">
+            <div class="login-footer">
 
                 <p>
-
                     Don't have an account?
 
-                    <a href="register.php">Create an account</a>
-
+                    <a href="register.php">
+                        Create an account
+                    </a>
                 </p>
 
             </div>
@@ -201,4 +264,3 @@ include("includes/navbar.php");
 </body>
 
 </html>
-
