@@ -1,157 +1,134 @@
 <?php
+require_once "../includes/app.php";
 
-session_start();
-
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
-
-// Get vaccine selected from Vaccines page
-$selected_vaccine_id = isset($_GET["vaccine_id"]) ? (int)$_GET["vaccine_id"] : 0;
-
-
-/* =========================
-   GET PARENT'S CHILDREN
-   ========================= */
-
-$children_query = "SELECT id, child_name
-                   FROM children
-                   WHERE parent_id = '$parent_id'
-                   ORDER BY child_name ASC";
-
-$children_result = mysqli_query($conn, $children_query);
-
-
-/* =========================
-   GET AVAILABLE VACCINES
-   ========================= */
-
-$vaccines_query = "SELECT id, vaccine_name, dose_number
-                   FROM vaccines
-                   WHERE availability = 'Available'
-                   ORDER BY vaccine_name ASC";
-
-$vaccines_result = mysqli_query($conn, $vaccines_query);
-
-/* =========================
-   GET ACTIVE HOSPITALS
-   ========================= */
-
-$hospitals_query = "SELECT id, hospital_name, city
-                    FROM hospitals
-                    WHERE status = 'Active'
-                    ORDER BY hospital_name ASC";
-
-$hospitals_result = mysqli_query($conn, $hospitals_query);
-
-/* BOOK APPOINTMENT */
-
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
+$selected_vaccine_id = (int)($_GET["vaccine_id"] ?? 0);
 $message = "";
 $message_type = "";
 
 if (isset($_POST["book_appointment"])) {
+    verify_csrf();
+    $child_id = post_int("child_id");
+    $vaccine_id = post_int("vaccine_id");
+    $hospital_id = post_int("hospital_id");
+    $booking_date = post_string("booking_date", 10);
+    $booking_time = post_string("booking_time", 5);
 
-    $child_id = $_POST["child_id"];
-    $vaccine_id = $_POST["vaccine_id"];
-    $hospital_id = $_POST["hospital_id"];
-    $booking_date = $_POST["booking_date"];
-    $booking_time = $_POST["booking_time"];
-
-      $status = "Pending";
-
-      $query = "INSERT INTO bookings
-              (parent_id, child_id, hospital_id, vaccine_id, booking_date, booking_time, status)
-              VALUES (?, ?, ?, ?, ?, ?, ?)";
-
- $stmt = mysqli_prepare($conn, $query);
-
-  mysqli_stmt_bind_param(
-        $stmt,
-        "iiiisss",
-        $parent_id,
-        $child_id,
-        $hospital_id,
-        $vaccine_id,
-        $booking_date,
-        $booking_time,
-        $status
-    );
-
-if (mysqli_stmt_execute($stmt)) {
-
-    // Get the hospital's user ID
-    $hospital_query = "SELECT user_id
-                       FROM hospitals
-                       WHERE id = '$hospital_id'";
-
-    $hospital_result = mysqli_query($conn, $hospital_query);
-
-    if ($hospital_result && mysqli_num_rows($hospital_result) > 0) {
-
-        $hospital = mysqli_fetch_assoc($hospital_result);
-        $hospital_user_id = $hospital["user_id"];
-
-        // Get the child's name
-        $child_query = "SELECT child_name
-                        FROM children
-                        WHERE id = '$child_id'
-                        AND parent_id = '$parent_id'";
-
-        $child_result = mysqli_query($conn, $child_query);
-
-        $child = mysqli_fetch_assoc($child_result);
-        $child_name = $child["child_name"];
-
-        // Create notification for hospital
-        $notification_query = "INSERT INTO notifications
-                               (user_id, title, message, type)
-                               VALUES (?, ?, ?, ?)";
-
-        $notification_stmt = mysqli_prepare($conn, $notification_query);
-
-        $title = "New Appointment";
-        $notification_message = "A new vaccination appointment has been booked for " . $child_name . ".";
-        $type = "appointment";
-
-        mysqli_stmt_bind_param(
-            $notification_stmt,
-            "isss",
-            $hospital_user_id,
-            $title,
-            $notification_message,
-            $type
+    if (
+        $child_id <= 0 || $vaccine_id <= 0 || $hospital_id <= 0 ||
+        !valid_date($booking_date) || !valid_time($booking_time) ||
+        strtotime("$booking_date $booking_time") <= time()
+    ) {
+        $message = "Choose a valid future appointment date and time.";
+        $message_type = "error";
+    } else {
+        $child_stmt = $conn->prepare(
+            "SELECT child_name FROM children
+             WHERE id = ? AND parent_id = ? AND archived_at IS NULL"
         );
+        $child_stmt->bind_param("ii", $child_id, $parent_id);
+        $child_stmt->execute();
+        $child = $child_stmt->get_result()->fetch_assoc();
+        $child_stmt->close();
 
-        mysqli_stmt_execute($notification_stmt);
-        mysqli_stmt_close($notification_stmt);
+        $vaccine_stmt = $conn->prepare(
+            "SELECT vaccine_name, dose_number FROM vaccines
+             WHERE id = ? AND availability = 'Available'"
+        );
+        $vaccine_stmt->bind_param("i", $vaccine_id);
+        $vaccine_stmt->execute();
+        $vaccine = $vaccine_stmt->get_result()->fetch_assoc();
+        $vaccine_stmt->close();
+
+        $hospital_stmt = $conn->prepare(
+            "SELECT id, user_id, hospital_name FROM hospitals
+             WHERE id = ? AND status = 'Active'"
+        );
+        $hospital_stmt->bind_param("i", $hospital_id);
+        $hospital_stmt->execute();
+        $hospital = $hospital_stmt->get_result()->fetch_assoc();
+        $hospital_stmt->close();
+
+        if (!$child || !$vaccine || !$hospital) {
+            $message = "The selected child, vaccine, or hospital is unavailable.";
+            $message_type = "error";
+        } else {
+            $conflict_stmt = $conn->prepare(
+                "SELECT id FROM bookings
+                 WHERE child_id = ? AND booking_date = ? AND booking_time = ?
+                 AND status IN ('Pending', 'Approved') LIMIT 1"
+            );
+            $conflict_stmt->bind_param("iss", $child_id, $booking_date, $booking_time);
+            $conflict_stmt->execute();
+            $conflict = $conflict_stmt->get_result()->fetch_assoc();
+            $conflict_stmt->close();
+
+            if ($conflict) {
+                $message = "This child already has an appointment at that time.";
+                $message_type = "error";
+            } else {
+                mysqli_begin_transaction($conn);
+                $status = "Pending";
+                $stmt = $conn->prepare(
+                    "INSERT INTO bookings
+                     (parent_id, child_id, hospital_id, vaccine_id,
+                      booking_date, booking_time, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+                $stmt->bind_param(
+                    "iiiisss", $parent_id, $child_id, $hospital_id,
+                    $vaccine_id, $booking_date, $booking_time, $status
+                );
+                $saved = $stmt->execute();
+                $booking_id = $stmt->insert_id;
+                $stmt->close();
+
+                if ($saved) {
+                    $saved = notify_user(
+                        $conn,
+                        (int)$hospital["user_id"],
+                        "New appointment",
+                        "A new vaccination appointment was booked for " . $child["child_name"] . ".",
+                        "appointment",
+                        "Hospital/appointments.php?booking_id=" . $booking_id
+                    );
+                }
+
+                if ($saved) {
+                    audit($conn, $parent_id, "booking.created", "booking", $booking_id);
+                    mysqli_commit($conn);
+                    $message = "Appointment booked and sent for hospital approval.";
+                    $message_type = "success";
+                } else {
+                    mysqli_rollback($conn);
+                    $message = "Unable to book the appointment.";
+                    $message_type = "error";
+                }
+            }
+        }
     }
-
-    $message = "Appointment booked successfully! Your booking is now pending hospital approval.";
-    $message_type = "success";
-
-} else {
-    $message = "Something went wrong. Please try again.";
-    $message_type = "error";
 }
 
-      mysqli_stmt_close($stmt);
-}
+$children_stmt = $conn->prepare(
+    "SELECT id, child_name FROM children
+     WHERE parent_id = ? AND archived_at IS NULL ORDER BY child_name"
+);
+$children_stmt->bind_param("i", $parent_id);
+$children_stmt->execute();
+$children_result = $children_stmt->get_result();
 
+$vaccines_result = $conn->query(
+    "SELECT id, vaccine_name, dose_number FROM vaccines
+     WHERE availability = 'Available' ORDER BY vaccine_name"
+);
+
+$hospitals_result = $conn->query(
+    "SELECT id, hospital_name, city FROM hospitals
+     WHERE status = 'Active' ORDER BY hospital_name"
+);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -338,6 +315,7 @@ if (mysqli_stmt_execute($stmt)) {
             <div class="booking-card">
 
                 <form method="POST" class="booking-form">
+                    <?php echo csrf_field(); ?>
 
 
                     <!-- CHILD -->

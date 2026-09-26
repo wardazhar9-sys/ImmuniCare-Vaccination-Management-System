@@ -1,49 +1,23 @@
 <?php
+require_once "../includes/app.php";
+$user = require_role($conn, "parent");
+$name = $user["name"];
+$parent_id = (int)$user["id"];
 
-session_start();
-
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$name = $_SESSION["name"];
-$parent_id = $_SESSION["user_id"];
-
-// Get parent's vaccination history
-$history_query = "SELECT
-                    vr.id,
-                    c.child_name,
-                    v.vaccine_name,
-                    v.dose_number,
-                    h.hospital_name,
-                    h.city,
-                    vr.vaccination_date,
-                    vr.status,
-                    vr.remarks
-                  FROM vaccination_records vr
-                  INNER JOIN children c
-                  ON vr.child_id = c.id
-                  INNER JOIN vaccines v
-                  ON vr.vaccine_id = v.id
-                  INNER JOIN hospitals h
-                  ON vr.hospital_id = h.id
-                  WHERE c.parent_id = '$parent_id'
-                  ORDER BY vr.vaccination_date DESC";
-
-$history_result = mysqli_query($conn, $history_query);
+$stmt = $conn->prepare(
+    "SELECT vr.id, c.child_name, v.vaccine_name, v.dose_number,
+            h.hospital_name, h.city, vr.vaccination_date, vr.status, vr.remarks
+     FROM vaccination_records vr
+     JOIN children c ON c.id = vr.child_id
+     JOIN vaccines v ON v.id = vr.vaccine_id
+     JOIN hospitals h ON h.id = vr.hospital_id
+     WHERE c.parent_id = ? ORDER BY vr.vaccination_date DESC"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$history_result = $stmt->get_result();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -90,7 +64,7 @@ $history_result = mysqli_query($conn, $history_query);
                 <span>Dashboard</span>
             </a>
 
-            <a href="my_children.php" class="sidebar-link">
+            <a href="children.php" class="sidebar-link">
                 <span class="sidebar-icon">♙</span>
                 <span>My Children</span>
             </a>

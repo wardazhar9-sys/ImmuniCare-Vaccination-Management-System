@@ -1,22 +1,9 @@
 <?php
 
-session_start();
+require_once "../includes/app.php";
 
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
 
 $message = "";
 $message_type = "";
@@ -27,12 +14,12 @@ $message_type = "";
 ========================================== */
 
 if (isset($_POST["add_child"])) {
-
-    $child_name = trim($_POST["child_name"]);
-    $date_of_birth = $_POST["date_of_birth"];
-    $gender = $_POST["gender"];
-    $blood_group = $_POST["blood_group"];
-    $address = trim($_POST["address"]);
+    verify_csrf();
+    $child_name = post_string("child_name", 100);
+    $date_of_birth = post_string("date_of_birth", 10);
+    $gender = post_string("gender", 20);
+    $blood_group = post_string("blood_group", 10);
+    $address = post_string("address", 500);
 
     // Check if all fields are filled
     if (
@@ -40,7 +27,11 @@ if (isset($_POST["add_child"])) {
         empty($date_of_birth) ||
         empty($gender) ||
         empty($blood_group) ||
-        empty($address)
+        empty($address) ||
+        !valid_date($date_of_birth) ||
+        $date_of_birth > date("Y-m-d") ||
+        !in_array($gender, ["Male", "Female"], true) ||
+        !in_array($blood_group, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], true)
     ) {
 
         $message = "Please fill in all fields.";
@@ -92,12 +83,15 @@ if (isset($_POST["add_child"])) {
    GET REGISTERED CHILDREN
 ========================================== */
 
-$sql = "SELECT id, child_name, date_of_birth, gender, blood_group, address
-        FROM children
-        WHERE parent_id = '$parent_id'
-        ORDER BY child_name ASC";
-
-$result = mysqli_query($conn, $sql);
+$stmt = $conn->prepare(
+    "SELECT id, child_name, date_of_birth, gender, blood_group, address
+     FROM children
+     WHERE parent_id = ? AND archived_at IS NULL
+     ORDER BY child_name ASC"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
 ?>
 
@@ -111,7 +105,7 @@ $result = mysqli_query($conn, $sql);
 
     <title>My Children - ImmuniCare</title>
 
-    <link rel="stylesheet" href="../Assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 
     <style>
 
@@ -954,6 +948,7 @@ body.modal-open {
 
 
 <form method="POST" action="delete_child.php" style="display: inline;">
+    <?php echo csrf_field(); ?>
     <input type="hidden" name="child_id" value="<?php echo $row['id']; ?>">
 
     <button type="submit" class="action-btn delete-btn"
@@ -1240,6 +1235,7 @@ body.modal-open {
 
 
         <form method="POST" class="add-child-form">
+            <?php echo csrf_field(); ?>
 
 
             <!-- CHILD NAME -->

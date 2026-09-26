@@ -1,80 +1,53 @@
 <?php
-session_start();
-include("../config/db.php");
+require_once "../includes/app.php";
 
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
+$error_message = "";
 
 if (isset($_POST["update_profile"])) {
-      $name = trim($_POST["name"]);
-    $email = trim($_POST["email"]);
+    verify_csrf();
+    $name = post_string("name", 100);
+    $email = post_string("email", 150);
 
-    // Check whether the email format is valid
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
-        $error_message = "Please enter a valid email address.";
-
+    if ($name === "" || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error_message = "Enter a valid name and email address.";
     } else {
+        $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id <> ?");
+        $stmt->bind_param("si", $email, $parent_id);
+        $stmt->execute();
+        $exists = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-        // Check whether another user already has this email
-        $email_check_query = "SELECT id
-                              FROM users
-                              WHERE email = '$email'
-                              AND id != '$parent_id'";
-
-        $email_check_result = mysqli_query($conn, $email_check_query);
-
-        if (mysqli_num_rows($email_check_result) > 0) {
-
-            $error_message = "This email address is already being used by another account.";
-
+        if ($exists) {
+            $error_message = "This email address is already in use.";
         } else {
+            $stmt = $conn->prepare(
+                "UPDATE users SET name = ?, email = ?
+                 WHERE id = ? AND role = 'parent'"
+            );
+            $stmt->bind_param("ssi", $name, $email, $parent_id);
+            $updated = $stmt->execute();
+            $stmt->close();
 
-            // Update profile information
-            $update_query = "UPDATE users
-                             SET name = '$name',
-                                 email = '$email'
-                             WHERE id = '$parent_id'
-                             AND role = 'parent'";
-
-            if (mysqli_query($conn, $update_query)) {
-
-                // Update the session name as well
+            if ($updated) {
                 $_SESSION["name"] = $name;
-
-                header("Location: profile.php?updated=1");
-                exit();
-
-            } else {
-
-                $error_message = "Error updating profile: " . mysqli_error($conn);
+                audit($conn, $parent_id, "profile.updated", "user", $parent_id);
+                redirect_to("profile.php?updated=1");
             }
+
+            $error_message = "Unable to update your profile.";
         }
     }
 }
 
-// Get current parent information
-$parent_query = "SELECT name, email
-                 FROM users
-                 WHERE id = '$parent_id'
-                 AND role = 'parent'";
+$stmt = $conn->prepare("SELECT name, email FROM users WHERE id = ? AND role = 'parent'");
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$parent = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
-$parent_result = mysqli_query($conn, $parent_query);
-$parent = mysqli_fetch_assoc($parent_result);
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -121,6 +94,7 @@ $parent = mysqli_fetch_assoc($parent_result);
                     </div>
 
                     <form method="POST" action="">
+                        <?php echo csrf_field(); ?>
 
                         <div class="profile-information-grid">
 

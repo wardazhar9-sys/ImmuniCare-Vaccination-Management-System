@@ -1,17 +1,16 @@
 
 <?php
 
-session_start();
-
-include("config/db.php");
+require_once "includes/app.php";
 
 $message = "";
 $message_type = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf();
 
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
+    $email = post_string("email", 150);
+    $password = (string)($_POST["password"] ?? "");
 
     // Check whether fields are empty
     if (empty($email) || empty($password)) {
@@ -30,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     else {
 
         // Find user by email
-        $sql = "SELECT id, name, password, role FROM users WHERE email = ?";
+        $sql = "SELECT id, name, password, role, status FROM users WHERE email = ?";
 
         $stmt = mysqli_prepare($conn, $sql);
 
@@ -45,9 +44,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = mysqli_fetch_assoc($result);
 
             // Check password
-            if (password_verify($password, $user["password"])) {
+            if (
+                password_verify($password, $user["password"])
+                && ($user["status"] ?? "Active") === "Active"
+            ) {
 
                 // Create session
+                session_regenerate_id(true);
                 $_SESSION["user_id"] = $user["id"];
                 $_SESSION["name"] = $user["name"];
                 $_SESSION["role"] = $user["role"];
@@ -59,12 +62,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                  }
 
                  elseif($user["role"] == "hospital"){
-                    header("Location: hospital/dashboard.php");
+                    header("Location: Hospital/dashboard.php");
                     exit();
                  }
 
                  elseif ($user["role"] == "admin"){
-                     header("Location: admin/dashboard.php");
+                     header("Location: Admin/dashboard.php");
                       exit();
                  }
 
@@ -144,7 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="login-form-container">
 
-            <a href="index_old.php" class="login-home-link">
+            <a href="index.php" class="login-home-link">
                 <span>‹</span>
                 Home Page
             </a>
@@ -174,6 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
             <form method="POST" action="">
+                <?php echo csrf_field(); ?>
 
                 <!-- EMAIL -->
 
@@ -241,6 +245,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </button>
 
             </form>
+
+            <p><a href="forgot_password.php">Forgot password?</a></p>
 
 
             <div class="login-footer">

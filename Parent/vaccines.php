@@ -1,30 +1,14 @@
 <?php
+require_once "../includes/app.php";
+$user = require_role($conn, "parent");
+$name = $user["name"];
 
-session_start();
-
-require_once "../config/db.php";
-
-// Make sure only logged-in parents can access this page
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Get parent's name
-$name = $_SESSION["name"];
-
-// Get all vaccines from the database
-$sql = "SELECT * FROM vaccines ORDER BY id ASC";
-
-$vaccines_result = mysqli_query($conn, $sql);
+$vaccines_result = $conn->query(
+    "SELECT id, vaccine_name, description, age_group, dose_number, availability
+     FROM vaccines ORDER BY vaccine_name"
+);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -307,12 +291,12 @@ $vaccines_result = mysqli_query($conn, $sql);
                                 </span>
 
 
- <a href="book_appointment.php?vaccine_id=<?php echo $vaccine["id"]; ?>"
-   class="dashboard-primary-btn vaccine-book-btn">
-
-    Book Appointment
-
-</a>
+ <?php if ($availability_class === "available"): ?>
+     <a href="book_appointment.php?vaccine_id=<?php echo (int)$vaccine["id"]; ?>"
+        class="dashboard-primary-btn vaccine-book-btn">Book Appointment</a>
+ <?php else: ?>
+     <span class="booking-no-action">Currently unavailable</span>
+ <?php endif; ?>
 
 
                             </div>

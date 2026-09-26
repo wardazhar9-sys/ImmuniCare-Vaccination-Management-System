@@ -1,36 +1,23 @@
 <?php
 
-session_start();
+require_once "../includes/app.php";
 
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
+$parent = require_role($conn, "parent");
+$parent_id = (int)$parent["id"];
 
 $profile_updated = isset($_GET["updated"]) && $_GET["updated"] == "1";
 
 $password_updated = isset($_GET["password_updated"]) && $_GET["password_updated"] == "1";
 
 // Get parent information
-$parent_query = "SELECT id, name, email, role, created_at
-                 FROM users
-                 WHERE id = '$parent_id'
-                 AND role = 'parent'";
-
-$parent_result = mysqli_query($conn, $parent_query);
-
-$parent = mysqli_fetch_assoc($parent_result);
+$parent_stmt = $conn->prepare(
+    "SELECT id, name, email, role, created_at
+     FROM users WHERE id = ? AND role = 'parent'"
+);
+$parent_stmt->bind_param("i", $parent_id);
+$parent_stmt->execute();
+$parent = $parent_stmt->get_result()->fetch_assoc();
+$parent_stmt->close();
 
 // echo "<pre>";
 // print_r($parent);

@@ -1,42 +1,23 @@
 <?php
+require_once "../includes/app.php";
+$user = require_role($conn, "parent");
+$name = $user["name"];
+$parent_id = (int)$user["id"];
 
-session_start();
-
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$name = $_SESSION["name"];
-$parent_id = $_SESSION["user_id"];
-
-// Get vaccination schedules belonging to this parent
-$schedule_query = "SELECT
-                    c.child_name,
-                    v.vaccine_name,
-                    v.dose_number,
-                    vs.scheduled_date,
-                    vs.scheduled_time,
-                    vs.status
-                   FROM vaccination_schedules vs
-                   INNER JOIN children c ON vs.child_id = c.id
-                   INNER JOIN vaccines v ON vs.vaccine_id = v.id
-                   WHERE c.parent_id = '$parent_id'
-                   ORDER BY vs.scheduled_date ASC, vs.scheduled_time ASC";
-
-$schedule_result = mysqli_query($conn, $schedule_query);
+$stmt = $conn->prepare(
+    "SELECT c.child_name, v.vaccine_name, vs.dose_number,
+            vs.scheduled_date, vs.scheduled_time, vs.status
+     FROM vaccination_schedules vs
+     JOIN bookings b ON b.id = vs.booking_id
+     JOIN children c ON c.id = vs.child_id
+     JOIN vaccines v ON v.id = vs.vaccine_id
+     WHERE c.parent_id = ? ORDER BY vs.scheduled_date, vs.scheduled_time"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$schedule_result = $stmt->get_result();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -83,7 +64,7 @@ $schedule_result = mysqli_query($conn, $schedule_query);
                 <span>Dashboard</span>
             </a>
 
-            <a href="my_children.php" class="sidebar-link">
+            <a href="children.php" class="sidebar-link">
                 <span class="sidebar-icon">♙</span>
                 <span>My Children</span>
             </a>

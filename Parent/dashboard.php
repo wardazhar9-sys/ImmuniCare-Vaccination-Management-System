@@ -1,133 +1,84 @@
 <?php
+require_once "../includes/app.php";
+$user = require_role($conn, "parent");
+$name = $user["name"];
+$parent_id = (int)$user["id"];
 
-session_start();
-
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$name = $_SESSION["name"];
-
-$parent_id = $_SESSION["user_id"];
-
-/* =========================================================
-   NOTIFICATIONS
-========================================================= */
-
-// Mark notifications as read
 if (isset($_POST["mark_notifications_read"])) {
-
-    $mark_read_query = "UPDATE notifications
-                        SET is_read = 1
-                        WHERE user_id = '$parent_id'
-                        AND is_read = 0";
-
-    mysqli_query($conn, $mark_read_query);
-
-    exit();
+    verify_csrf();
+    $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+    $stmt->bind_param("i", $parent_id);
+    $stmt->execute();
+    $stmt->close();
+    exit;
 }
 
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM notifications WHERE user_id = ? AND is_read = 0");
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$unread_notifications = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
-// Get unread notification count
-$notification_count_query = "SELECT COUNT(*) AS unread_count
-                             FROM notifications
-                             WHERE user_id = '$parent_id'
-                             AND is_read = 0";
+$stmt = $conn->prepare(
+    "SELECT title, message, type, is_read, created_at, link_url
+     FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 8"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$notification_result = $stmt->get_result();
 
-$notification_count_result = mysqli_query($conn, $notification_count_query);
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM children WHERE parent_id = ? AND archived_at IS NULL");
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$total_children = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
-$notification_count_data = mysqli_fetch_assoc($notification_count_result);
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total FROM bookings
+     WHERE parent_id = ? AND booking_date >= CURDATE()
+     AND status IN ('Pending', 'Approved')"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$upcoming_appointments = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
-$unread_notifications = $notification_count_data["unread_count"];
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total FROM vaccination_records vr
+     JOIN children c ON c.id = vr.child_id
+     WHERE c.parent_id = ? AND vr.status = 'Vaccinated'"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$completed_vaccinations = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
+$stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total FROM vaccination_schedules vs
+     JOIN children c ON c.id = vs.child_id
+     WHERE c.parent_id = ? AND vs.status IN ('Scheduled', 'Completed', 'Missed')"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$total_scheduled = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
+$vaccination_progress = $total_scheduled > 0
+    ? min(100, (int)round(($completed_vaccinations / $total_scheduled) * 100))
+    : 0;
 
-// Get recent notifications
-$notification_query = "SELECT id, title, message, type, is_read, created_at
-                       FROM notifications
-                       WHERE user_id = '$parent_id'
-                       ORDER BY created_at DESC
-                       LIMIT 5";
-
-$notification_result = mysqli_query($conn, $notification_query);
-
-$children_query = "SELECT COUNT(*) AS total_children 
-                   FROM children 
-                   WHERE parent_id = '$parent_id'";
-
-$children_result = mysqli_query($conn, $children_query);
-
-$children_data = mysqli_fetch_assoc($children_result);
-
-$total_children = $children_data["total_children"];
-
-$appointments_query = "SELECT COUNT(*) AS upcoming_appointments
-                       FROM bookings
-                       WHERE parent_id = '$parent_id'
-                       AND booking_date >= CURDATE()
-                       AND status IN ('Pending', 'Approved')";
-
-$appointments_result = mysqli_query($conn, $appointments_query);
-$appointments_data = mysqli_fetch_assoc($appointments_result);
-
-$upcoming_appointments = $appointments_data["upcoming_appointments"];
-
-
-$completed_query = "SELECT COUNT(*) AS completed_vaccinations
-                    FROM vaccination_records vr
-                    INNER JOIN children c ON vr.child_id = c.id
-                    WHERE c.parent_id = '$parent_id'
-                    AND vr.status = 'Vaccinated'";
-
-$completed_result = mysqli_query($conn, $completed_query);
-$completed_data = mysqli_fetch_assoc($completed_result);
-
-$completed_vaccinations = $completed_data["completed_vaccinations"];
-
-
-$total_scheduled_query = "SELECT COUNT(*) AS total_scheduled
-                          FROM vaccination_schedules vs
-                          INNER JOIN children c ON vs.child_id = c.id
-                          WHERE c.parent_id = '$parent_id'";
-
-$total_scheduled_result = mysqli_query($conn, $total_scheduled_query);
-$total_scheduled_data = mysqli_fetch_assoc($total_scheduled_result);
-
-$total_scheduled = $total_scheduled_data["total_scheduled"];
-
-if ($total_scheduled > 0) {
-    $vaccination_progress = round(($completed_vaccinations / $total_scheduled) * 100);
-} else {
-    $vaccination_progress = 0;
-}
-
-
-$upcoming_vaccination_query = "SELECT 
-                                c.child_name,
-                                v.vaccine_name,
-                                vs.scheduled_date,
-                                vs.scheduled_time
-                               FROM vaccination_schedules vs
-                               INNER JOIN children c ON vs.child_id = c.id
-                               INNER JOIN vaccines v ON vs.vaccine_id = v.id
-                               WHERE c.parent_id = '$parent_id'
-                               AND vs.scheduled_date >= CURDATE()
-                               AND vs.status = 'Scheduled'
-                               ORDER BY vs.scheduled_date ASC, vs.scheduled_time ASC
-                               LIMIT 1";
-
-$upcoming_vaccination_result = mysqli_query($conn, $upcoming_vaccination_query);
-
-$upcoming_vaccination = mysqli_fetch_assoc($upcoming_vaccination_result);
+$stmt = $conn->prepare(
+    "SELECT c.child_name, v.vaccine_name, vs.scheduled_date, vs.scheduled_time
+     FROM vaccination_schedules vs
+     JOIN children c ON c.id = vs.child_id
+     JOIN vaccines v ON v.id = vs.vaccine_id
+     WHERE c.parent_id = ? AND vs.status = 'Scheduled'
+       AND TIMESTAMP(vs.scheduled_date, vs.scheduled_time) >= NOW()
+     ORDER BY vs.scheduled_date, vs.scheduled_time LIMIT 1"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$upcoming_vaccination = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if ($upcoming_vaccination) {
     $upcoming_child_name = $upcoming_vaccination["child_name"];
@@ -137,7 +88,6 @@ if ($upcoming_vaccination) {
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -314,6 +264,7 @@ if ($upcoming_vaccination) {
                 <div class="notification-dropdown-header">
 
                     <strong>Notifications</strong>
+                    <a href="../notifications.php">View all</a>
 
                     <?php if ($unread_notifications > 0): ?>
 
@@ -745,7 +696,7 @@ if ($upcoming_vaccination) {
                         <div class="quick-actions">
 
 
-                            <a href="add_child.php" class="quick-action">
+                            <a href="children.php" class="quick-action">
 
                                 <div class="quick-action-icon">
                                     +
@@ -876,7 +827,7 @@ if ($upcoming_vaccination) {
                     "application/x-www-form-urlencoded"
             },
 
-            body: "mark_notifications_read=1"
+            body: "mark_notifications_read=1&_csrf=<?php echo csrf_token(); ?>"
 
         })
         .then(() => {

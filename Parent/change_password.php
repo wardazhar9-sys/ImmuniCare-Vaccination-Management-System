@@ -1,79 +1,43 @@
 <?php
+require_once "../includes/app.php";
 
-session_start();
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
+$error_message = "";
 
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a parent
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
-
-// Change password
 if (isset($_POST["change_password"])) {
+    verify_csrf();
+    $current = (string)($_POST["current_password"] ?? "");
+    $new = (string)($_POST["new_password"] ?? "");
+    $confirm = (string)($_POST["confirm_password"] ?? "");
 
-    $current_password = $_POST["current_password"];
-    $new_password = $_POST["new_password"];
-    $confirm_password = $_POST["confirm_password"];
+    $stmt = $conn->prepare("SELECT password FROM users WHERE id = ? AND role = 'parent'");
+    $stmt->bind_param("i", $parent_id);
+    $stmt->execute();
+    $stored = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
 
-    // Get the current password from the database
-    $password_query = "SELECT password
-                       FROM users
-                       WHERE id = '$parent_id'
-                       AND role = 'parent'";
-
-    $password_result = mysqli_query($conn, $password_query);
-    $user = mysqli_fetch_assoc($password_result);
-
-    // Check current password
-    if (!password_verify($current_password, $user["password"])) {
-
+    if (!$stored || !password_verify($current, $stored["password"])) {
         $error_message = "Your current password is incorrect.";
-
-    // Check whether new passwords match
-    } elseif ($new_password !== $confirm_password) {
-
-        $error_message = "The new passwords do not match.";
-
-    // Check minimum password length
-    } elseif (strlen($new_password) < 8) {
-
-        $error_message = "Your new password must be at least 8 characters long.";
-
+    } elseif (strlen($new) < 8 || $new !== $confirm) {
+        $error_message = "Use an 8-character password and confirm it correctly.";
     } else {
+        $hash = password_hash($new, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ? AND role = 'parent'");
+        $stmt->bind_param("si", $hash, $parent_id);
+        $updated = $stmt->execute();
+        $stmt->close();
 
-        // Securely hash the new password
-        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-
-        // Update password in database
-        $update_password_query = "UPDATE users
-                                  SET password = '$hashed_password'
-                                  WHERE id = '$parent_id'
-                                  AND role = 'parent'";
-
-        if (mysqli_query($conn, $update_password_query)) {
-
-            header("Location: profile.php?password_updated=1");
-            exit();
-
-        } else {
-
-            $error_message = "Error updating password: " . mysqli_error($conn);
+        if ($updated) {
+            audit($conn, $parent_id, "password.changed", "user", $parent_id);
+            redirect_to("profile.php?password_updated=1");
         }
+
+        $error_message = "Unable to change your password.";
     }
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -121,6 +85,7 @@ if (isset($_POST["change_password"])) {
                     </div>
 
                     <form method="POST" action="">
+                        <?php echo csrf_field(); ?>
 
                         <div class="profile-information-grid">
 

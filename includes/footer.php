@@ -56,15 +56,15 @@
 
                 <h3>Services</h3>
 
-                <a href="#">Vaccination Scheduling</a>
+                <a href="Parent/schedule.php">Vaccination Scheduling</a>
 
-                <a href="#">Appointment Booking</a>
+                <a href="Parent/book_appointment.php">Appointment Booking</a>
 
-                <a href="#">Vaccination Tracking</a>
+                <a href="Parent/vaccination_history.php">Vaccination Tracking</a>
 
-                <a href="#">Hospital Connections</a>
+                <a href="hospitals.php">Hospital Connections</a>
 
-                <a href="#">Vaccination Reminders</a>
+                <a href="Parent/schedule.php">Vaccination Reminders</a>
 
             </div>
 
@@ -105,11 +105,11 @@
 
             <div class="home-footer-legal">
 
-                <a href="#">Privacy Policy</a>
+                <a href="privacy.php">Privacy Policy</a>
 
                 <span>|</span>
 
-                <a href="#">Terms & Conditions</a>
+                <a href="terms.php">Terms & Conditions</a>
 
             </div>
 

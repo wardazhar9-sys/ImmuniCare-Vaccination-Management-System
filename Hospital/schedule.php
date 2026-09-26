@@ -1,153 +1,135 @@
 <?php
+require_once "../includes/app.php";
 
-session_start();
+$user = require_role($conn, "hospital");
+$user_id = (int)$user["id"];
+$name = $user["name"];
 
-include("../config/db.php");
-
-
-// ===============================
-// CHECK LOGIN
-// ===============================
-
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-
-// ===============================
-// CHECK HOSPITAL ROLE
-// ===============================
-
-if ($_SESSION["role"] !== "hospital") {
-    header("Location: ../login.php");
-    exit();
-}
-
-
-$name = $_SESSION["name"];
-$user_id = $_SESSION["user_id"];
-
-
-// ===============================
-// GET HOSPITAL ID
-// ===============================
-
-$hospital_query = "SELECT id, hospital_name
-                   FROM hospitals
-                   WHERE user_id = '$user_id'
-                   LIMIT 1";
-
-$hospital_result = mysqli_query($conn, $hospital_query);
-
-$hospital = mysqli_fetch_assoc($hospital_result);
+$hospital_stmt = $conn->prepare(
+    "SELECT id, hospital_name FROM hospitals
+     WHERE user_id = ? AND status = 'Active' LIMIT 1"
+);
+$hospital_stmt->bind_param("i", $user_id);
+$hospital_stmt->execute();
+$hospital = $hospital_stmt->get_result()->fetch_assoc();
+$hospital_stmt->close();
 
 if (!$hospital) {
-    die("Hospital profile not found.");
+    http_response_code(403);
+    exit("Hospital approval is required before using this portal.");
 }
 
-$hospital_id = $hospital["id"];
+$hospital_id = (int)$hospital["id"];
 $hospital_name = $hospital["hospital_name"];
-
-
-// ===============================
-// CREATE VACCINATION SCHEDULE
-// ===============================
+$message = "";
+$message_type = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    verify_csrf();
+    $booking_id = post_int("booking_id");
+    $scheduled_date = post_string("scheduled_date", 10);
+    $scheduled_time = post_string("scheduled_time", 5);
 
     if (
-        isset($_POST["booking_id"]) &&
-        isset($_POST["scheduled_date"]) &&
-        isset($_POST["scheduled_time"])
+        $booking_id <= 0 || !valid_date($scheduled_date) ||
+        !valid_time($scheduled_time) ||
+        strtotime("$scheduled_date $scheduled_time") <= time()
     ) {
+        $message = "Choose a valid future schedule.";
+        $message_type = "error";
+    } else {
+        mysqli_begin_transaction($conn);
+        $stmt = $conn->prepare(
+            "SELECT b.parent_id, b.child_id, b.vaccine_id, v.dose_number, c.child_name,
+                    v.vaccine_name
+             FROM bookings b
+             JOIN children c ON c.id = b.child_id
+             JOIN vaccines v ON v.id = b.vaccine_id
+             WHERE b.id = ? AND b.hospital_id = ? AND b.status = 'Approved'
+             LIMIT 1"
+        );
+        $stmt->bind_param("ii", $booking_id, $hospital_id);
+        $stmt->execute();
+        $booking = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
-        $booking_id = intval($_POST["booking_id"]);
-        $scheduled_date = $_POST["scheduled_date"];
-        $scheduled_time = $_POST["scheduled_time"];
+        if (!$booking) {
+            mysqli_rollback($conn);
+            $message = "Only approved appointments can be scheduled.";
+            $message_type = "error";
+        } else {
+            $stmt = $conn->prepare(
+                "SELECT id FROM vaccination_schedules WHERE booking_id = ? LIMIT 1"
+            );
+            $stmt->bind_param("i", $booking_id);
+            $stmt->execute();
+            $existing = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
 
+            if ($existing) {
+                mysqli_rollback($conn);
+                $message = "This appointment already has a schedule.";
+                $message_type = "error";
+            } else {
+                $status = "Scheduled";
+                $stmt = $conn->prepare(
+                    "INSERT INTO vaccination_schedules
+                     (booking_id, child_id, vaccine_id, hospital_id, dose_number,
+                      scheduled_date, scheduled_time, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+                $stmt->bind_param(
+                    "iiiiisss", $booking_id, $booking["child_id"],
+                    $booking["vaccine_id"], $hospital_id, $booking["dose_number"],
+                    $scheduled_date, $scheduled_time, $status
+                );
+                $saved = $stmt->execute();
+                $schedule_id = $stmt->insert_id;
+                $stmt->close();
 
-        // Get the approved booking
-        $booking_query = "SELECT child_id, vaccine_id
-                          FROM bookings
-                          WHERE id = '$booking_id'
-                          AND hospital_id = '$hospital_id'
-                          AND status = 'Approved'
-                          LIMIT 1";
+                if ($saved) {
+                    $saved = notify_user(
+                        $conn,
+                        (int)$booking["parent_id"],
+                        "Vaccination scheduled",
+                        "The appointment for " . $booking["child_name"] . " (" . $booking["vaccine_name"] . ") has been scheduled.",
+                        "schedule",
+                        "Parent/schedule.php"
+                    );
+                }
 
-        $booking_result = mysqli_query($conn, $booking_query);
-
-        $booking = mysqli_fetch_assoc($booking_result);
-
-
-        if ($booking) {
-
-            $child_id = $booking["child_id"];
-            $vaccine_id = $booking["vaccine_id"];
-
-
-            // Insert vaccination schedule
-            $schedule_query = "INSERT INTO vaccination_schedules
-                               (child_id, vaccine_id, scheduled_date, scheduled_time, status)
-                               VALUES
-                               ('$child_id', '$vaccine_id', '$scheduled_date', '$scheduled_time', 'Scheduled')";
-
-            mysqli_query($conn, $schedule_query);
-
-
-            // Return to schedule page
-            header("Location: schedule.php");
-            exit();
+                if ($saved) {
+                    audit($conn, $user_id, "schedule.created", "schedule", $schedule_id);
+                    mysqli_commit($conn);
+                    $message = "Vaccination schedule created.";
+                    $message_type = "success";
+                } else {
+                    mysqli_rollback($conn);
+                    $message = "Unable to create the schedule.";
+                    $message_type = "error";
+                }
+            }
         }
     }
 }
 
-
-// ===============================
-// GET APPROVED APPOINTMENTS
-// ===============================
-
-$appointments_query = "SELECT
-                        b.id AS booking_id,
-                        b.booking_date,
-                        b.booking_time,
-
-                        u.name AS parent_name,
-
-                        c.child_name,
-
-                        v.vaccine_name,
-                        v.dose_number
-
-                       FROM bookings b
-
-                       INNER JOIN users u
-                       ON b.parent_id = u.id
-
-                       INNER JOIN children c
-                       ON b.child_id = c.id
-
-                       INNER JOIN vaccines v
-                       ON b.vaccine_id = v.id
-
-                       WHERE b.hospital_id = '$hospital_id'
-                       AND b.status = 'Approved'
-
-                       AND NOT EXISTS (
-                           SELECT 1
-                           FROM vaccination_schedules vs
-                           WHERE vs.child_id = b.child_id
-                           AND vs.vaccine_id = b.vaccine_id
-                       )
-
-                       ORDER BY b.booking_date ASC,
-                                b.booking_time ASC";
-
-
-$appointments_result = mysqli_query($conn, $appointments_query);
+$appointments_stmt = $conn->prepare(
+    "SELECT b.id AS booking_id, b.booking_date, b.booking_time,
+            u.name AS parent_name, c.child_name,
+            v.vaccine_name, v.dose_number
+     FROM bookings b
+     JOIN users u ON u.id = b.parent_id
+     JOIN children c ON c.id = b.child_id
+     JOIN vaccines v ON v.id = b.vaccine_id
+     LEFT JOIN vaccination_schedules vs ON vs.booking_id = b.id
+     WHERE b.hospital_id = ? AND b.status = 'Approved' AND vs.id IS NULL
+     ORDER BY b.booking_date, b.booking_time"
+);
+$appointments_stmt->bind_param("i", $hospital_id);
+$appointments_stmt->execute();
+$appointments_result = $appointments_stmt->get_result();
 
 ?>
-
 <!DOCTYPE html>
 
 <html lang="en">
@@ -454,6 +436,7 @@ $appointments_result = mysqli_query($conn, $appointments_query);
                                     <td style="padding:15px;">
 
                                         <form method="POST">
+                                            <?php echo csrf_field(); ?>
 
 
                                             <input

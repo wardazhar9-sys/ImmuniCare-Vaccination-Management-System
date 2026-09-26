@@ -9,7 +9,7 @@
 
     <title>Unable to Delete - ImmuniCare</title>
 
-    <link rel="stylesheet" href="../Assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 
     <style>
 
@@ -101,7 +101,7 @@
             <h1>Unable to Delete Child</h1>
 
             <p>
-                <?php echo htmlspecialchars($error_message); ?>
+                <?php echo htmlspecialchars($error_message ?? "This child cannot be removed."); ?>
             </p>
 
             <a href="children.php" class="back-btn">

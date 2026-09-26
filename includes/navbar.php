@@ -10,7 +10,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
         <!-- IMMUNICARE LOGO -->
 
-        <a href="index_old.php" class="brand">
+        <a href="index.php" class="brand">
 
             <img
                 src="assets/images/immunicare-logo-header.svg"
@@ -26,7 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="nav-links">
 
             <a
-                href="index_old.php"
+                href="index.php"
                 class="<?php echo ($current_page == 'index.php') ? 'active' : ''; ?>"
             >
                 Home

@@ -1,21 +1,13 @@
-<?php
-include("includes/navbar.php");
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>About ImmuniCare</title>
-
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    
-</body>
-</html>
-
+<?php include "includes/navbar.php"; ?>
 <main>
 
     <!-- =========================================
@@ -528,6 +520,6 @@ include("includes/navbar.php");
 </main>
 
 
-<?php
-include("includes/footer.php");
-?>
+<?php include("includes/footer.php"); ?>
+</body>
+</html>

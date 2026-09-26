@@ -1,83 +1,66 @@
 <?php
+require_once "../includes/app.php";
 
-session_start();
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
+$child_id = (int)($_GET["id"] ?? $_POST["child_id"] ?? 0);
 
-include("../config/db.php");
-
-if (!isset($_SESSION["user_id"]) || $_SESSION["role"] != "parent") {
-    header("Location: ../login.php");
-    exit();
+if ($child_id <= 0) {
+    redirect_to("children.php");
 }
 
-$parent_id = $_SESSION["user_id"];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    verify_csrf();
+    $child_name = post_string("child_name", 100);
+    $date_of_birth = post_string("date_of_birth", 10);
+    $gender = post_string("gender", 20);
+    $blood_group = post_string("blood_group", 10);
+    $address = post_string("address", 500);
 
-if (!isset($_GET["id"])) {
-    header("Location: my_children.php");
-    exit();
-}
+    if (
+        $child_name === "" || !valid_date($date_of_birth) ||
+        $date_of_birth > date("Y-m-d") ||
+        !in_array($gender, ["Male", "Female"], true) ||
+        !in_array($blood_group, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], true) ||
+        $address === ""
+    ) {
+        $error_message = "Enter valid child information.";
+    } else {
+        $stmt = $conn->prepare(
+            "UPDATE children SET child_name = ?, date_of_birth = ?, gender = ?,
+             blood_group = ?, address = ?
+             WHERE id = ? AND parent_id = ? AND archived_at IS NULL"
+        );
+        $stmt->bind_param(
+            "sssssii", $child_name, $date_of_birth, $gender,
+            $blood_group, $address, $child_id, $parent_id
+        );
+        $updated = $stmt->execute() && $stmt->affected_rows >= 0;
+        $stmt->close();
 
-$child_id = $_GET["id"];
+        if ($updated) {
+            audit($conn, $parent_id, "child.updated", "child", $child_id);
+            redirect_to("children.php");
+        }
 
-$sql = "SELECT id, child_name, date_of_birth, gender, blood_group, address
-        FROM children
-        WHERE id = '$child_id'
-        AND parent_id = '$parent_id'";
-
-$result = mysqli_query($conn, $sql);
-
-if (mysqli_num_rows($result) == 0) {
-    header("Location: my_children.php");
-    exit();
-}
-
-$child = mysqli_fetch_assoc($result);
-
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $child_name = $_POST["child_name"];
-    $date_of_birth = $_POST["date_of_birth"];
-    $gender = $_POST["gender"];
-    $blood_group = $_POST["blood_group"];
-    $address = $_POST["address"];
-
-
-    $update_sql = "UPDATE children
-                   SET child_name = ?,
-                       date_of_birth = ?,
-                       gender = ?,
-                       blood_group = ?,
-                       address = ?
-                   WHERE id = ?
-                   AND parent_id = ?";
-
-
-    $stmt = mysqli_prepare($conn, $update_sql);
-
-    mysqli_stmt_bind_param(
-        $stmt,
-        "sssssii",
-        $child_name,
-        $date_of_birth,
-        $gender,
-        $blood_group,
-        $address,
-        $child_id,
-        $parent_id
-    );
-
-
-    if (mysqli_stmt_execute($stmt)) {
-
-        header("Location: my_children.php");
-        exit();
-
+        $error_message = "Unable to update child information.";
     }
+}
 
+$stmt = $conn->prepare(
+    "SELECT id, child_name, date_of_birth, gender, blood_group, address
+     FROM children WHERE id = ? AND parent_id = ? AND archived_at IS NULL"
+);
+$stmt->bind_param("ii", $child_id, $parent_id);
+$stmt->execute();
+$child = $stmt->get_result()->fetch_assoc();
+$stmt->close();
+
+if (!$child) {
+    redirect_to("children.php");
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -88,7 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <title>Edit Child - ImmuniCare</title>
 
-    <link rel="stylesheet" href="../Assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 
     <style>
 
@@ -274,6 +257,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="edit-card">
 
         <form method="POST">
+            <?php echo csrf_field(); ?>
 
             <div class="form-grid">
 
@@ -361,7 +345,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="form-actions">
 
-                <a href="my_children.php" class="cancel-btn">
+                <a href="children.php" class="cancel-btn">
                     Cancel
                 </a>
 

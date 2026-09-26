@@ -1,20 +1,40 @@
 <?php
-include("includes/navbar.php");
-?>
+require_once "includes/app.php";
+$message = "";
+$message_type = "";
 
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    verify_csrf();
+    $name = post_string("name", 100);
+    $email = post_string("email", 150);
+    $subject = post_string("subject", 200);
+    $body = post_string("message", 2000);
+
+    if ($name === "" || !filter_var($email, FILTER_VALIDATE_EMAIL) || $subject === "" || $body === "") {
+        $message = "Please complete all contact fields correctly.";
+        $message_type = "error";
+    } else {
+        $stmt = $conn->prepare(
+            "INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)"
+        );
+        $stmt->bind_param("ssss", $name, $email, $subject, $body);
+        $saved = $stmt->execute();
+        $stmt->close();
+        $message = $saved ? "Your message has been received." : "Unable to send your message.";
+        $message_type = $saved ? "success" : "error";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contact ImmuniCare</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    
-</body>
-</html>
+<?php include "includes/navbar.php"; ?>
 <main>
 
     <!-- =========================================
@@ -169,6 +189,8 @@ include("includes/navbar.php");
                     method="POST"
                     class="contact-form"
                 >
+                    <?php echo csrf_field(); ?>
+                    <?php if ($message !== ""): ?><div class="appointment-message <?php echo e($message_type); ?>"><?php echo e($message); ?></div><?php endif; ?>
 
                     <div class="contact-form-row">
 
@@ -387,6 +409,6 @@ include("includes/navbar.php");
 </main>
 
 
-<?php
-include("includes/footer.php");
-?>
+<?php include("includes/footer.php"); ?>
+</body>
+</html>

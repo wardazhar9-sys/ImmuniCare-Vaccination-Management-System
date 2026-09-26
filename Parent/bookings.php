@@ -1,54 +1,111 @@
 <?php
-session_start();
-include("../config/db.php");
+require_once "../includes/app.php";
+$user = require_role($conn, "parent");
+$parent_id = (int)$user["id"];
+$name = $user["name"];
+$message = "";
+$message_type = "";
 
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    verify_csrf();
+    $booking_id = post_int("booking_id");
+    $action = post_string("action", 20);
+
+    $stmt = $conn->prepare(
+        "SELECT b.hospital_id, b.child_id, b.status, h.user_id, c.child_name
+         FROM bookings b JOIN hospitals h ON h.id = b.hospital_id
+         JOIN children c ON c.id = b.child_id
+         WHERE b.id = ? AND b.parent_id = ? LIMIT 1"
+    );
+    $stmt->bind_param("ii", $booking_id, $parent_id);
+    $stmt->execute();
+    $booking = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    if (!$booking || !in_array($booking["status"], ["Pending", "Approved"], true)) {
+        $message = "This booking cannot be changed.";
+        $message_type = "error";
+    } elseif ($action === "cancel") {
+        $stmt = $conn->prepare(
+            "UPDATE bookings SET status = 'Cancelled', cancelled_at = NOW(), updated_at = NOW()
+             WHERE id = ? AND parent_id = ? AND status IN ('Pending', 'Approved')"
+        );
+        $stmt->bind_param("ii", $booking_id, $parent_id);
+        $updated = $stmt->execute();
+        $stmt->close();
+        if ($updated) {
+            notify_user($conn, (int)$booking["user_id"], "Appointment cancelled", "An appointment for " . $booking["child_name"] . " was cancelled by the parent.", "appointment", "Hospital/appointments.php");
+            audit($conn, $parent_id, "booking.cancelled", "booking", $booking_id);
+            $message = "Appointment cancelled.";
+            $message_type = "success";
+        } else {
+            $message = "Unable to cancel the appointment.";
+            $message_type = "error";
+        }
+    } elseif ($action === "reschedule") {
+        $date = post_string("booking_date", 10);
+        $time = post_string("booking_time", 5);
+        if (!valid_date($date) || !valid_time($time) || strtotime("$date $time") <= time()) {
+            $message = "Choose a valid future date and time.";
+            $message_type = "error";
+        } else {
+            $conflict_stmt = $conn->prepare(
+                "SELECT id FROM bookings
+                 WHERE child_id = ? AND id <> ? AND booking_date = ? AND booking_time = ?
+                   AND status IN ('Pending', 'Approved') LIMIT 1"
+            );
+            $conflict_stmt->bind_param(
+                "iiss",
+                $booking["child_id"],
+                $booking_id,
+                $date,
+                $time
+            );
+            $conflict_stmt->execute();
+            $conflict = $conflict_stmt->get_result()->fetch_assoc();
+            $conflict_stmt->close();
+
+            if ($conflict) {
+                $message = "This child already has another appointment at that time.";
+                $message_type = "error";
+            } else {
+                $stmt = $conn->prepare(
+                    "UPDATE bookings SET booking_date = ?, booking_time = ?, status = 'Pending', updated_at = NOW()
+                     WHERE id = ? AND parent_id = ? AND status IN ('Pending', 'Approved')"
+                );
+                $stmt->bind_param("ssii", $date, $time, $booking_id, $parent_id);
+                $updated = $stmt->execute();
+                $stmt->close();
+                if ($updated) {
+                    notify_user($conn, (int)$booking["user_id"], "Appointment rescheduled", "An appointment for " . $booking["child_name"] . " needs approval for its new time.", "appointment", "Hospital/appointments.php");
+                    audit($conn, $parent_id, "booking.rescheduled", "booking", $booking_id);
+                    $message = "Appointment rescheduled and sent for approval.";
+                    $message_type = "success";
+                } else {
+                    $message = "Unable to reschedule the appointment.";
+                    $message_type = "error";
+                }
+            }
+        }
+    }
 }
 
-if ($_SESSION["role"] !== "parent") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$parent_id = $_SESSION["user_id"];
-
-$name = isset($_SESSION["name"]) ? $_SESSION["name"] : "";
-
-
-/* GET PARENT'S BOOKINGS */
-
-$bookings_query = "SELECT
-                    b.id,
-                    c.child_name,
-                    v.vaccine_name,
-                    v.dose_number,
-                    h.hospital_name,
-                    h.city,
-                    b.booking_date,
-                    b.booking_time,
-                    b.status
-                   FROM bookings b
-
-                   INNER JOIN children c
-                   ON b.child_id = c.id
-
-                   INNER JOIN vaccines v
-                   ON b.vaccine_id = v.id
-
-                   INNER JOIN hospitals h
-                   ON b.hospital_id = h.id
-
-                   WHERE b.parent_id = '$parent_id'
-
-                   ORDER BY b.booking_date DESC, b.booking_time DESC";
-
-                $bookings_result = mysqli_query($conn, $bookings_query);
+$stmt = $conn->prepare(
+    "SELECT b.id, c.child_name, v.vaccine_name, v.dose_number,
+            h.hospital_name, h.city, b.booking_date, b.booking_time,
+            b.status
+     FROM bookings b
+     JOIN children c ON c.id = b.child_id
+     JOIN vaccines v ON v.id = b.vaccine_id
+     JOIN hospitals h ON h.id = b.hospital_id
+     WHERE b.parent_id = ?
+     ORDER BY b.booking_date DESC, b.booking_time DESC"
+);
+$stmt->bind_param("i", $parent_id);
+$stmt->execute();
+$bookings_result = $stmt->get_result();
 
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -97,7 +154,7 @@ $bookings_query = "SELECT
             <span>Dashboard</span>
         </a>
 
-        <a href="my_children.php" class="sidebar-link">
+        <a href="children.php" class="sidebar-link">
             <span class="sidebar-icon">♙</span>
             <span>My Children</span>
         </a>
@@ -149,7 +206,7 @@ $bookings_query = "SELECT
 
     <div class="sidebar-bottom">
 
-        <a href="../logout.php" class="logout-link">
+        <a href="logout.php" class="logout-link">
             <span class="sidebar-icon">↪</span>
             <span>Logout</span>
         </a>
@@ -437,6 +494,23 @@ $bookings_query = "SELECT
                                         This appointment has been completed.
                                     </span>
 
+                                <?php endif; ?>
+
+                                <?php if (in_array($status, ["pending", "approved"], true)): ?>
+                                    <form method="POST" class="booking-inline-form">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="booking_id" value="<?php echo (int)$booking["id"]; ?>">
+                                        <input type="hidden" name="action" value="reschedule">
+                                        <input type="date" name="booking_date" min="<?php echo date("Y-m-d"); ?>" value="<?php echo e($booking["booking_date"]); ?>" required>
+                                        <input type="time" name="booking_time" value="<?php echo e($booking["booking_time"]); ?>" required>
+                                        <button type="submit">Reschedule</button>
+                                    </form>
+                                    <form method="POST" class="booking-inline-form">
+                                        <?php echo csrf_field(); ?>
+                                        <input type="hidden" name="booking_id" value="<?php echo (int)$booking["id"]; ?>">
+                                        <input type="hidden" name="action" value="cancel">
+                                        <button type="submit" class="user-action-deactivate">Cancel</button>
+                                    </form>
                                 <?php endif; ?>
 
 

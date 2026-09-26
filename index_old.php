@@ -65,7 +65,7 @@ include("includes/navbar.php");
         <div class="hero-visual">
 
             <img
-                src="assets/images/immunicare-hero-visual.png"
+                src="assets/images/immunicare-logo-header.svg"
                 alt="ImmuniCare vaccination illustration"
                 class="hero-doctor-image"
             >

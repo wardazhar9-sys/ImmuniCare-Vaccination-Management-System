@@ -1,6 +1,6 @@
 <?php
 
-include("config/db.php");
+require_once "includes/app.php";
 
 $message = "";
 $message_type = "";
@@ -10,15 +10,24 @@ $email = "";
 $password = "";
 $confirm_password = "";
 $role = "";
+$phone = "";
+$address = "";
+$city = "";
+$location = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf();
 
     // Get form data
-    $name = trim($_POST["name"]);
-    $email = trim($_POST["email"]);
-    $password = $_POST["password"];
-    $confirm_password = $_POST["confirm_password"];
-    $role = $_POST["role"];
+    $name = post_string("name", 100);
+    $email = post_string("email", 150);
+    $password = (string)($_POST["password"] ?? "");
+    $confirm_password = (string)($_POST["confirm_password"] ?? "");
+    $role = post_string("role", 20);
+    $phone = post_string("phone", 30);
+    $address = post_string("address", 500);
+    $city = post_string("city", 100);
+    $location = post_string("location", 255);
 
 
     // Check if all fields are filled
@@ -27,7 +36,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         empty($email) ||
         empty($password) ||
         empty($confirm_password) ||
-        empty($role)
+        empty($role) ||
+        ($role === "hospital" &&
+            (empty($phone) || empty($address) || empty($city)))
     ) {
 
         $message = "Please fill in all fields.";
@@ -126,15 +137,92 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             );
 
 
+            mysqli_begin_transaction($conn);
+
             if (mysqli_stmt_execute($insert_stmt)) {
+                $user_id = mysqli_insert_id($conn);
+                $hospital_ok = true;
 
-                $message = "Account created successfully! You can now login.";
-                $message_type = "success";
+                if ($role === "hospital") {
+                    $hospital_stmt = mysqli_prepare(
+                        $conn,
+                        "INSERT INTO hospitals
+                         (user_id, hospital_name, phone, address, city, location, status)
+                         VALUES (?, ?, ?, ?, ?, ?, 'Pending')"
+                    );
+                    mysqli_stmt_bind_param(
+                        $hospital_stmt,
+                        "isssss",
+                        $user_id,
+                        $name,
+                        $phone,
+                        $address,
+                        $city,
+                        $location
+                    );
+                    $hospital_ok = mysqli_stmt_execute($hospital_stmt);
+                    mysqli_stmt_close($hospital_stmt);
+                }
 
-                // Clear name and email after successful registration
-                $name = "";
-                $email = "";
-                $role = "";
+                if ($hospital_ok) {
+                    $plain_token = bin2hex(random_bytes(32));
+                    $token_hash = hash("sha256", $plain_token);
+                    $token_stmt = mysqli_prepare(
+                        $conn,
+                        "INSERT INTO email_verification_tokens
+                         (user_id, token_hash, expires_at)
+                         VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))"
+                    );
+                    mysqli_stmt_bind_param($token_stmt, "is", $user_id, $token_hash);
+                    $hospital_ok = mysqli_stmt_execute($token_stmt);
+                    mysqli_stmt_close($token_stmt);
+
+                    if ($hospital_ok) {
+                        $payload = json_encode([
+                            "email" => $email,
+                            "url" => "verify_email.php?token=" . $plain_token
+                        ]);
+                        $channel = "email";
+                        $event = "email_verification";
+                        $outbox_stmt = mysqli_prepare(
+                            $conn,
+                            "INSERT INTO notification_outbox
+                             (user_id, channel, event_type, payload)
+                             VALUES (?, ?, ?, ?)"
+                        );
+                        mysqli_stmt_bind_param(
+                            $outbox_stmt,
+                            "isss",
+                            $user_id,
+                            $channel,
+                            $event,
+                            $payload
+                        );
+                        $hospital_ok = mysqli_stmt_execute($outbox_stmt);
+                        mysqli_stmt_close($outbox_stmt);
+                    }
+                }
+
+                if (!$hospital_ok) {
+                    mysqli_rollback($conn);
+                } else {
+                    mysqli_commit($conn);
+                }
+
+                if ($hospital_ok) {
+                    $message = "Account created successfully. Await hospital approval if applicable.";
+                    $message_type = "success";
+                    $name = "";
+                    $email = "";
+                    $role = "";
+                    $phone = "";
+                    $address = "";
+                    $city = "";
+                    $location = "";
+                } else {
+                    $message = "Unable to create the hospital profile.";
+                    $message_type = "error";
+                }
 
             }
 
@@ -199,7 +287,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <!-- HOME LINK -->
 
             <a
-                href="index_old.php"
+                href="index.php"
                 class="register-home-link"
             >
                 <span>‹</span>
@@ -244,6 +332,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 action=""
                 class="register-form"
             >
+                <?php echo csrf_field(); ?>
 
 
                 <!-- FULL NAME -->
@@ -408,6 +497,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 </div>
 
+                <div class="register-field">
+                    <label for="phone">Hospital Phone</label>
+                    <input type="text" id="phone" name="phone"
+                           value="<?php echo htmlspecialchars($phone); ?>">
+                </div>
+
+                <div class="register-field">
+                    <label for="city">Hospital City</label>
+                    <input type="text" id="city" name="city"
+                           value="<?php echo htmlspecialchars($city); ?>">
+                </div>
+
+                <div class="register-field">
+                    <label for="address">Hospital Address</label>
+                    <textarea id="address" name="address" rows="2"><?php echo htmlspecialchars($address); ?></textarea>
+                </div>
+
+                <div class="register-field">
+                    <label for="location">Hospital Location</label>
+                    <input type="text" id="location" name="location"
+                           value="<?php echo htmlspecialchars($location); ?>">
+                </div>
+
 
                 <!-- TERMS -->
 
@@ -420,7 +532,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <span>
                         I accept the
-                        <a href="#" onclick="return false;">
+                        <a href="terms.php">
                             terms of the agreement
                         </a>
                     </span>

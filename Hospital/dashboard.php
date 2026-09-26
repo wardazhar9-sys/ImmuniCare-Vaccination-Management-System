@@ -1,181 +1,82 @@
 <?php
+require_once "../includes/app.php";
 
-session_start();
+$user = require_role($conn, "hospital");
+$user_id = (int)$user["id"];
+$name = $user["name"];
 
-include("../config/db.php");
-
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-
-// Check whether the logged-in user is a hospital
-if ($_SESSION["role"] !== "hospital") {
-    header("Location: ../login.php");
-    exit();
-}
-
-
-$name = $_SESSION["name"];
-$user_id = $_SESSION["user_id"];
-
-// Mark notifications as read
-if (isset($_POST["mark_notifications_read"])) {
-
-    $mark_read_query = "UPDATE notifications
-                        SET is_read = 1
-                        WHERE user_id = '$user_id'
-                        AND is_read = 0";
-
-    mysqli_query($conn, $mark_read_query);
-
-    exit();
-}
-
-/* =========================================================
-   GET HOSPITAL INFORMATION
-========================================================= */
-
-$hospital_query = "SELECT * FROM hospitals WHERE user_id = '$user_id'";
-
-$hospital_result = mysqli_query($conn, $hospital_query);
-
-$hospital_data = mysqli_fetch_assoc($hospital_result);
-
+$hospital_stmt = $conn->prepare(
+    "SELECT id, hospital_name FROM hospitals
+     WHERE user_id = ? AND status = 'Active' LIMIT 1"
+);
+$hospital_stmt->bind_param("i", $user_id);
+$hospital_stmt->execute();
+$hospital_data = $hospital_stmt->get_result()->fetch_assoc();
+$hospital_stmt->close();
 
 if (!$hospital_data) {
-    die("Hospital profile not found.");
+    http_response_code(403);
+    exit("Hospital approval is required before using this portal.");
 }
 
-
-$hospital_id = $hospital_data["id"];
+$hospital_id = (int)$hospital_data["id"];
 $hospital_name = $hospital_data["hospital_name"];
 
-/* =========================================================
-   NOTIFICATIONS
-========================================================= */
+if (isset($_POST["mark_notifications_read"])) {
+    verify_csrf();
+    $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $stmt->close();
+    exit;
+}
 
-// Get unread notification count
-$notification_count_query = "SELECT COUNT(*) AS unread_count
-                             FROM notifications
-                             WHERE user_id = '$user_id'
-                             AND is_read = 0";
+function hospital_count(mysqli $conn, int $hospitalId, string $where): int
+{
+    $stmt = $conn->prepare("SELECT COUNT(*) AS total FROM bookings WHERE hospital_id = ? AND $where");
+    $stmt->bind_param("i", $hospitalId);
+    $stmt->execute();
+    $total = (int)$stmt->get_result()->fetch_assoc()["total"];
+    $stmt->close();
+    return $total;
+}
 
-$notification_count_result = mysqli_query($conn, $notification_count_query);
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM notifications WHERE user_id = ? AND is_read = 0");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$unread_notifications = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
-$notification_count_data = mysqli_fetch_assoc($notification_count_result);
+$stmt = $conn->prepare(
+    "SELECT title, message, type, is_read, created_at, link_url
+     FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 8"
+);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$notification_result = $stmt->get_result();
 
-$unread_notifications = $notification_count_data["unread_count"];
+$total_pending = hospital_count($conn, $hospital_id, "status = 'Pending'");
+$total_approved = hospital_count($conn, $hospital_id, "status = 'Approved'");
+$total_today = hospital_count($conn, $hospital_id, "booking_date = CURDATE() AND status IN ('Pending', 'Approved')");
 
+$stmt = $conn->prepare("SELECT COUNT(*) AS total FROM vaccination_records WHERE hospital_id = ?");
+$stmt->bind_param("i", $hospital_id);
+$stmt->execute();
+$total_vaccinations = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
 
-// Get recent notifications
-$notification_query = "SELECT id, title, message, type, is_read, created_at
-                       FROM notifications
-                       WHERE user_id = '$user_id'
-                       ORDER BY created_at DESC
-                       LIMIT 5";
-
-$notification_result = mysqli_query($conn, $notification_query);
-
-
-/* =========================================================
-   PENDING APPOINTMENTS
-========================================================= */
-
-$pending_query = "SELECT COUNT(*) AS total_pending
-                  FROM bookings
-                  WHERE hospital_id = '$hospital_id'
-                  AND status = 'Pending'";
-
-$pending_result = mysqli_query($conn, $pending_query);
-
-$pending_data = mysqli_fetch_assoc($pending_result);
-
-$total_pending = $pending_data["total_pending"];
-
-
-/* =========================================================
-   APPROVED APPOINTMENTS
-========================================================= */
-
-$approved_query = "SELECT COUNT(*) AS total_approved
-                   FROM bookings
-                   WHERE hospital_id = '$hospital_id'
-                   AND status = 'Approved'";
-
-$approved_result = mysqli_query($conn, $approved_query);
-
-$approved_data = mysqli_fetch_assoc($approved_result);
-
-$total_approved = $approved_data["total_approved"];
-
-
-/* =========================================================
-   TODAY'S APPOINTMENTS
-========================================================= */
-
-$today_query = "SELECT COUNT(*) AS total_today
-                FROM bookings
-                WHERE hospital_id = '$hospital_id'
-                AND booking_date = CURDATE()
-                AND status IN ('Pending', 'Approved')";
-
-$today_result = mysqli_query($conn, $today_query);
-
-$today_data = mysqli_fetch_assoc($today_result);
-
-$total_today = $today_data["total_today"];
-
-
-/* =========================================================
-   VACCINATIONS RECORDED
-========================================================= */
-
-$vaccination_query = "SELECT COUNT(*) AS total_vaccinations
-                      FROM vaccination_records
-                      WHERE hospital_id = '$hospital_id'";
-
-$vaccination_result = mysqli_query($conn, $vaccination_query);
-
-$vaccination_data = mysqli_fetch_assoc($vaccination_result);
-
-$total_vaccinations = $vaccination_data["total_vaccinations"];
-
-
-/* =========================================================
-   RECENT APPOINTMENTS
-========================================================= */
-
-$recent_query = "SELECT 
-                    b.id,
-                    c.child_name,
-                    v.vaccine_name,
-                    v.dose_number,
-                    b.booking_date,
-                    b.booking_time,
-                    b.status
-                 FROM bookings b
-
-                 INNER JOIN children c
-                 ON b.child_id = c.id
-
-                 INNER JOIN vaccines v
-                 ON b.vaccine_id = v.id
-
-                 WHERE b.hospital_id = '$hospital_id'
-
-                 ORDER BY b.booking_date DESC,
-                          b.booking_time DESC
-
-                 LIMIT 5";
-
-$recent_result = mysqli_query($conn, $recent_query);
+$stmt = $conn->prepare(
+    "SELECT b.id, c.child_name, v.vaccine_name, v.dose_number,
+            b.booking_date, b.booking_time, b.status
+     FROM bookings b JOIN children c ON c.id = b.child_id
+     JOIN vaccines v ON v.id = b.vaccine_id
+     WHERE b.hospital_id = ? ORDER BY b.booking_date DESC, b.booking_time DESC LIMIT 5"
+);
+$stmt->bind_param("i", $hospital_id);
+$stmt->execute();
+$recent_result = $stmt->get_result();
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -256,6 +157,11 @@ $recent_result = mysqli_query($conn, $recent_query);
 
                 <span>Vaccination Schedule</span>
 
+            </a>
+
+            <a href="slots.php" class="sidebar-link">
+                <span class="sidebar-icon">◷</span>
+                <span>Appointment Slots</span>
             </a>
 
 
@@ -348,6 +254,7 @@ $recent_result = mysqli_query($conn, $recent_query);
 
         <div class="notification-dropdown-header">
             <strong>Notifications</strong>
+                    <a href="../notifications.php">View all</a>
 
             <?php if ($unread_notifications > 0): ?>
                 <span>
@@ -989,6 +896,12 @@ $recent_result = mysqli_query($conn, $recent_query);
         event.stopPropagation();
 
         notificationDropdown.classList.toggle("show");
+
+        fetch("dashboard.php", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: "mark_notifications_read=1&_csrf=<?php echo csrf_token(); ?>"
+        });
 
     });
 

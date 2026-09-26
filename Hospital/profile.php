@@ -1,23 +1,10 @@
 <?php
 
-session_start();
+require_once "../includes/app.php";
 
-include("../config/db.php");
-
-// Check whether user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: ../login.php");
-    exit();
-}
-
-// Check whether the logged-in user is a hospital
-if ($_SESSION["role"] !== "hospital") {
-    header("Location: ../login.php");
-    exit();
-}
-
-$user_id = $_SESSION["user_id"];
-$name = $_SESSION["name"];
+$user = require_role($conn, "hospital");
+$user_id = (int)$user["id"];
+$name = $user["name"];
 $hospital_profile = null;
 $profile_error = "";
 
@@ -84,6 +71,11 @@ function display_date($date)
 $display_name = $hospital_profile ? $hospital_profile["hospital_name"] : $name;
 $status_text = $hospital_profile ? $hospital_profile["status"] : "";
 $status_label = $status_text !== "" ? ucfirst($status_text) : "Not provided";
+
+if ($status_text === "Inactive") {
+    http_response_code(403);
+    exit("This hospital account is inactive.");
+}
 
 ?>
 
