@@ -24,6 +24,14 @@ From the production application directory:
 
 The launcher starts XAMPP MySQL, creates/imports/migrates the database, and serves the application at `http://127.0.0.1:8080`. Override `XAMPP_ROOT`, `DB_PORT`, `DB_PASSWORD`, or `APP_PORT` when your XAMPP installation differs.
 
+On Windows XAMPP, double-click `setup/start-xampp.bat` or run:
+
+```bat
+setup\start-xampp.bat
+```
+
+It uses the standard `C:\xampp` installation path. Set `XAMPP_ROOT` if XAMPP is installed elsewhere.
+
 1. Create the database:
 
 ```sql
