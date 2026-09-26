@@ -12706,6 +12706,67 @@ body {
     color: #1d4ed8;
 }
 
+.password-reset-page {
+    width: min(100% - 32px, 520px);
+    margin: 64px auto;
+    padding: 32px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-sizing: border-box;
+}
+
+.password-reset-page h1 {
+    margin: 0 0 8px;
+    color: #0f234d;
+}
+
+.password-reset-page p {
+    margin: 0 0 20px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.password-reset-form {
+    display: grid;
+    gap: 10px;
+}
+
+.password-reset-form label {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.password-reset-form input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    box-sizing: border-box;
+}
+
+.password-reset-form button {
+    width: fit-content;
+    margin-top: 8px;
+    min-height: 42px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .password-reset-page {
+        margin: 24px auto;
+        padding: 22px;
+    }
+}
+
 .dashboard-card button,
 .dashboard-card input,
 .dashboard-card select,

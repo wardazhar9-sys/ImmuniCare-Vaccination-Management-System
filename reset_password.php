@@ -22,10 +22,13 @@ if (strlen($token) !== 64) {
              WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW()
              LIMIT 1"
         );
-        $stmt->bind_param("s", $hash);
-        $stmt->execute();
-        $reset = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
+        $reset = null;
+        if ($stmt) {
+            $stmt->bind_param("s", $hash);
+            $stmt->execute();
+            $reset = $stmt->get_result()->fetch_assoc();
+            $stmt->close();
+        }
 
         if (!$reset) {
             $message = "This recovery link is invalid or expired.";
@@ -33,17 +36,24 @@ if (strlen($token) !== 64) {
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
             mysqli_begin_transaction($conn);
             $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $stmt->bind_param("si", $password_hash, $reset["id"]);
-            $updated = $stmt->execute();
-            $stmt->close();
+            $updated = false;
+            if ($stmt) {
+                $stmt->bind_param("si", $password_hash, $reset["id"]);
+                $updated = $stmt->execute();
+                $stmt->close();
+            }
 
             $stmt = $conn->prepare(
                 "UPDATE password_reset_tokens SET used_at = NOW()
                  WHERE token_hash = ?"
             );
-            $stmt->bind_param("s", $hash);
-            $updated = $updated && $stmt->execute();
-            $stmt->close();
+            if ($stmt) {
+                $stmt->bind_param("s", $hash);
+                $updated = $updated && $stmt->execute();
+                $stmt->close();
+            } else {
+                $updated = false;
+            }
 
             if ($updated) {
                 mysqli_commit($conn);
@@ -66,17 +76,17 @@ if (strlen($token) !== 64) {
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="login-body">
-<main class="login-form-container">
+<main class="password-reset-page">
     <h1>Reset password</h1>
     <p><?php echo e($message); ?></p>
-    <?php if (!$success && $token !== "" && $message === ""): ?>
-        <form method="POST">
+    <?php if (!$success && strlen($token) === 64): ?>
+        <form method="POST" class="password-reset-form">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="token" value="<?php echo e($token); ?>">
             <label for="password">New password</label>
-            <input id="password" type="password" name="password" required>
+            <input id="password" type="password" name="password" autocomplete="new-password" required>
             <label for="confirm_password">Confirm password</label>
-            <input id="confirm_password" type="password" name="confirm_password" required>
+            <input id="confirm_password" type="password" name="confirm_password" autocomplete="new-password" required>
             <button type="submit">Save password</button>
         </form>
     <?php endif; ?>
