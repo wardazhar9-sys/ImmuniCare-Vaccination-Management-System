@@ -17,6 +17,16 @@ if not defined DB_NAME set "DB_NAME=vaccination_management_system"
 set "APP_ENV=%APP_ENV%"
 if not defined APP_ENV set "APP_ENV=local"
 
+if not exist "%~dp0.env" (
+    >"%~dp0.env" echo APP_ENV=%APP_ENV%
+    >>"%~dp0.env" echo DB_HOST=%DB_HOST%
+    >>"%~dp0.env" echo DB_PORT=%DB_PORT%
+    >>"%~dp0.env" echo DB_NAME=%DB_NAME%
+    >>"%~dp0.env" echo DB_USER=%DB_USER%
+    >>"%~dp0.env" echo DB_PASSWORD=%DB_PASSWORD%
+    >>"%~dp0.env" echo APP_TIMEZONE=Asia/Karachi
+)
+
 if not exist "%PHP_BIN%" (
     echo XAMPP PHP was not found at %PHP_BIN%.
     echo Set XAMPP_ROOT to your XAMPP installation directory.
