@@ -7,6 +7,56 @@ $parent_id = (int)$user["id"];
 
 $message = "";
 $message_type = "";
+$updated_message = isset($_GET["updated"]);
+
+if (isset($_POST["update_child"])) {
+    verify_csrf();
+    $child_id = post_int("child_id");
+    $child_name = post_string("child_name", 100);
+    $date_of_birth = post_string("date_of_birth", 10);
+    $gender = post_string("gender", 20);
+    $blood_group = post_string("blood_group", 10);
+    $address = post_string("address", 500);
+
+    $valid = $child_id > 0 &&
+        $child_name !== "" &&
+        valid_date($date_of_birth) &&
+        $date_of_birth <= date("Y-m-d") &&
+        in_array($gender, ["Male", "Female"], true) &&
+        in_array($blood_group, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], true) &&
+        $address !== "";
+
+    if (!$valid) {
+        $message = "Enter valid child information.";
+        $message_type = "error";
+    } else {
+        $stmt = $conn->prepare(
+            "UPDATE children SET child_name = ?, date_of_birth = ?, gender = ?,
+             blood_group = ?, address = ?
+             WHERE id = ? AND parent_id = ? AND archived_at IS NULL"
+        );
+        $stmt->bind_param(
+            "sssssii",
+            $child_name,
+            $date_of_birth,
+            $gender,
+            $blood_group,
+            $address,
+            $child_id,
+            $parent_id
+        );
+        $updated = $stmt->execute();
+        $stmt->close();
+
+        $message = $updated ? "Child information updated." : "Unable to update child.";
+        $message_type = $updated ? "success" : "error";
+        if ($updated) {
+            audit($conn, $parent_id, "child.updated", "child", $child_id);
+            header("Location: children.php?updated=1");
+            exit();
+        }
+    }
+}
 
 
 /* ==========================================
@@ -92,6 +142,11 @@ $stmt = $conn->prepare(
 $stmt->bind_param("i", $parent_id);
 $stmt->execute();
 $result = $stmt->get_result();
+
+if ($updated_message) {
+    $message = "Child information updated.";
+    $message_type = "success";
+}
 
 ?>
 
@@ -929,7 +984,15 @@ body.modal-open {
 
     <div class="child-actions">
 
-    <a href="edit_child.php?id=<?php echo $row['id']; ?>" class="action-btn edit-btn">
+    <button type="button" class="action-btn edit-btn"
+            onclick="openEditChildModal(
+                <?php echo (int)$row['id']; ?>,
+                <?php echo htmlspecialchars(json_encode($row['child_name']), ENT_QUOTES, 'UTF-8'); ?>,
+                <?php echo htmlspecialchars(json_encode($row['date_of_birth']), ENT_QUOTES, 'UTF-8'); ?>,
+                <?php echo htmlspecialchars(json_encode($row['gender']), ENT_QUOTES, 'UTF-8'); ?>,
+                <?php echo htmlspecialchars(json_encode($row['blood_group']), ENT_QUOTES, 'UTF-8'); ?>,
+                <?php echo htmlspecialchars(json_encode($row['address']), ENT_QUOTES, 'UTF-8'); ?>
+            )">
 
     <!-- Edit Icon -->
     <svg viewBox="0 0 24 24"
@@ -946,7 +1009,7 @@ body.modal-open {
 
     Edit
 
-</a>
+</button>
 
 
 <form method="POST" action="delete_child.php" style="display: inline;">
@@ -1388,7 +1451,73 @@ body.modal-open {
 </main>
 </div>
 
+<div class="user-modal-overlay" id="editChildModal">
+    <div class="user-modal">
+        <div class="user-modal-header">
+            <div>
+                <h2>Edit Child</h2>
+                <p>Update your child's profile without leaving this page.</p>
+            </div>
+            <button type="button" class="user-modal-close" onclick="closeEditChildModal()">&times;</button>
+        </div>
+        <form method="POST">
+            <?php echo csrf_field(); ?>
+            <div class="user-modal-body">
+                <input type="hidden" name="update_child" value="1">
+                <input type="hidden" id="parent_edit_child_id" name="child_id">
+                <div class="user-form-group">
+                    <label for="parent_edit_child_name">Child Name</label>
+                    <input id="parent_edit_child_name" name="child_name" required>
+                </div>
+                <div class="user-form-group">
+                    <label for="parent_edit_child_dob">Date of Birth</label>
+                    <input id="parent_edit_child_dob" type="date" name="date_of_birth" required>
+                </div>
+                <div class="user-form-group">
+                    <label for="parent_edit_child_gender">Gender</label>
+                    <select id="parent_edit_child_gender" name="gender" required>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                <div class="user-form-group">
+                    <label for="parent_edit_child_blood">Blood Group</label>
+                    <select id="parent_edit_child_blood" name="blood_group" required>
+                        <?php foreach (["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as $blood): ?>
+                            <option value="<?php echo e($blood); ?>"><?php echo e($blood); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="user-form-group">
+                    <label for="parent_edit_child_address">Address</label>
+                    <textarea id="parent_edit_child_address" name="address" rows="3" required></textarea>
+                </div>
+            </div>
+            <div class="user-modal-footer">
+                <button type="button" class="user-modal-cancel" onclick="closeEditChildModal()">Cancel</button>
+                <button type="submit" class="user-modal-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+
+function openEditChildModal(id, name, dob, gender, blood, address) {
+    document.getElementById("parent_edit_child_id").value = id;
+    document.getElementById("parent_edit_child_name").value = name;
+    document.getElementById("parent_edit_child_dob").value = dob;
+    document.getElementById("parent_edit_child_gender").value = gender;
+    document.getElementById("parent_edit_child_blood").value = blood;
+    document.getElementById("parent_edit_child_address").value = address;
+    document.getElementById("editChildModal").classList.add("show");
+    document.body.classList.add("modal-open");
+}
+
+function closeEditChildModal() {
+    document.getElementById("editChildModal").classList.remove("show");
+    document.body.classList.remove("modal-open");
+}
 
 function openAddChildModal() {
 
@@ -1413,13 +1542,18 @@ document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") {
 
         closeAddChildModal();
+        closeEditChildModal();
 
     }
 
 });
 
+document.getElementById("editChildModal").addEventListener("click", function(event) {
+    if (event.target === this) closeEditChildModal();
+});
 
-<?php if ($message != ""): ?>
+
+<?php if ($message != "" && isset($_POST["add_child"])): ?>
 
     // Automatically open modal when there is a success/error message
     openAddChildModal();

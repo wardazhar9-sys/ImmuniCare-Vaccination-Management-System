@@ -12,7 +12,14 @@ if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.use_strict_mode', '1');
+    ini_set('session.use_cookies', '1');
+    ini_set('session.use_only_cookies', '1');
+    ini_set('session.gc_maxlifetime', '28800');
+    session_name('immunicare_session');
     session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
         'httponly' => true,
         'samesite' => 'Lax',
         'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'
@@ -78,6 +85,10 @@ function current_user(mysqli $conn): ?array
     $stmt = $conn->prepare(
         'SELECT id, name, email, role, status FROM users WHERE id = ? LIMIT 1'
     );
+    if (!$stmt) {
+        error_log('Current user lookup failed: ' . $conn->error);
+        return null;
+    }
     $id = (int)$_SESSION['user_id'];
     $stmt->bind_param('i', $id);
     $stmt->execute();

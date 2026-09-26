@@ -44,6 +44,7 @@ $portal_meta = [
 $portal_title = $portal_meta[$portal_role][$portal_page][0] ?? "ImmuniCare";
 $portal_subtitle = $portal_meta[$portal_role][$portal_page][1] ?? "Vaccination management portal";
 $portal_unread = 0;
+$portal_notifications = [];
 
 if (isset($conn, $_SESSION["user_id"])) {
     $portal_notification_stmt = $conn->prepare(
@@ -54,6 +55,19 @@ if (isset($conn, $_SESSION["user_id"])) {
     $portal_notification_stmt->execute();
     $portal_unread = (int)$portal_notification_stmt->get_result()->fetch_assoc()["total"];
     $portal_notification_stmt->close();
+
+    $portal_list_stmt = $conn->prepare(
+        "SELECT id, title, message, is_read, created_at, link_url
+         FROM notifications WHERE user_id = ?
+         ORDER BY created_at DESC LIMIT 8"
+    );
+    $portal_list_stmt->bind_param("i", $portal_user_id);
+    $portal_list_stmt->execute();
+    $portal_list_result = $portal_list_stmt->get_result();
+    while ($portal_notification = $portal_list_result->fetch_assoc()) {
+        $portal_notifications[] = $portal_notification;
+    }
+    $portal_list_stmt->close();
 }
 ?>
 <header class="dashboard-header">
@@ -62,10 +76,13 @@ if (isset($conn, $_SESSION["user_id"])) {
         <p><?php echo e($portal_subtitle); ?></p>
     </div>
     <div class="header-actions">
-        <a href="../notifications.php" class="notification-button" aria-label="Notifications">
-            <span aria-hidden="true">♢</span>
+        <button type="button" class="notification-button" aria-label="Notifications" aria-controls="portalNotificationModal" aria-expanded="false" data-notification-toggle>
+            <svg class="notification-bell" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+                <path d="M10 21h4"></path>
+            </svg>
             <?php if ($portal_unread > 0): ?><span class="notification-dot"></span><?php endif; ?>
-        </a>
+        </button>
         <div class="header-divider"></div>
         <div class="profile-mini">
             <div class="profile-avatar"><?php echo e(strtoupper(substr($portal_name, 0, 1))); ?></div>
@@ -76,3 +93,81 @@ if (isset($conn, $_SESSION["user_id"])) {
         </div>
     </div>
 </header>
+
+<div class="portal-notification-modal" id="portalNotificationModal" aria-hidden="true">
+    <div class="portal-notification-backdrop" data-notification-close></div>
+    <section class="portal-notification-panel" role="dialog" aria-modal="true" aria-labelledby="portalNotificationTitle">
+        <div class="portal-notification-panel-header">
+            <h2 id="portalNotificationTitle">Notifications</h2>
+            <button type="button" aria-label="Close notifications" data-notification-close>×</button>
+        </div>
+        <div class="portal-notification-list">
+            <?php if (!$portal_notifications): ?>
+                <p class="notification-empty">No notifications yet.</p>
+            <?php else: ?>
+                <?php foreach ($portal_notifications as $notification): ?>
+                    <article class="portal-notification-item <?php echo $notification["is_read"] ? "read" : "unread"; ?>">
+                        <div>
+                            <strong><?php echo e($notification["title"]); ?></strong>
+                            <p><?php echo e($notification["message"]); ?></p>
+                            <small><?php echo e($notification["created_at"]); ?></small>
+                        </div>
+                        <div class="portal-notification-actions">
+                            <?php if (!empty($notification["link_url"])): ?>
+                                <a href="../<?php echo e($notification["link_url"]); ?>">Open</a>
+                            <?php endif; ?>
+                            <?php if (!$notification["is_read"]): ?>
+                                <form method="POST" action="../notifications.php" data-notification-form>
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="notification_id" value="<?php echo (int)$notification["id"]; ?>">
+                                    <button type="submit">Mark read</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        <?php if ($portal_unread > 0): ?>
+            <form method="POST" action="../notifications.php" data-notification-form>
+                <?php echo csrf_field(); ?>
+                <button class="portal-notification-mark-all" type="submit">Mark all as read</button>
+            </form>
+        <?php endif; ?>
+    </section>
+</div>
+
+<script>
+(() => {
+    const modal = document.getElementById("portalNotificationModal");
+    const toggle = document.querySelector("[data-notification-toggle]");
+    if (!modal || !toggle) return;
+    const close = () => {
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
+        toggle.setAttribute("aria-expanded", "false");
+    };
+    toggle.addEventListener("click", () => {
+        const open = modal.classList.toggle("show");
+        modal.setAttribute("aria-hidden", open ? "false" : "true");
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    modal.querySelectorAll("[data-notification-close]").forEach((button) => {
+        button.addEventListener("click", close);
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") close();
+    });
+    modal.querySelectorAll("[data-notification-form]").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await fetch(form.action, {
+                method: "POST",
+                body: new URLSearchParams(new FormData(form)),
+                credentials: "same-origin"
+            });
+            window.location.reload();
+        });
+    });
+})();
+</script>
