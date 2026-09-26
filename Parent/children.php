@@ -796,7 +796,9 @@ body.modal-open {
 
 
 <body>
-
+<div class="parent-dashboard">
+<?php include "sidebar.php"; ?>
+<main class="dashboard-main">
 <div class="children-container">
 
 
@@ -1383,7 +1385,8 @@ body.modal-open {
     </div>
 
 </div>
-
+</main>
+</div>
 
 <script>
 

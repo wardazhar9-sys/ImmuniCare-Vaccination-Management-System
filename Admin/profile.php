@@ -46,9 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <div class="dashboard-layout">
 <?php include "sidebar.php"; ?>
     <main class="dashboard-main">
-        <header class="dashboard-header">
-            <div class="header-page-title"><h1>Admin Profile</h1><p>Manage administrator account details.</p></div>
-        </header>
+        <?php include "../includes/portal_header.php"; ?>
         <section class="dashboard-content">
             <?php if ($message !== ""): ?>
                 <div class="appointment-message <?php echo e($message_type); ?>"><?php echo e($message); ?></div>

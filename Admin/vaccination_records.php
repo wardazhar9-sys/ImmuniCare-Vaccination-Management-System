@@ -39,9 +39,7 @@ $records = $stmt->get_result();
 <div class="dashboard-layout">
 <?php include "sidebar.php"; ?>
     <main class="dashboard-main">
-        <header class="dashboard-header">
-            <div class="header-page-title"><h1>Vaccination Records</h1><p>Audited vaccination history across the system.</p></div>
-        </header>
+        <?php include "../includes/portal_header.php"; ?>
         <section class="dashboard-content">
             <form class="users-search-form" method="GET">
                 <label for="search">Search</label>

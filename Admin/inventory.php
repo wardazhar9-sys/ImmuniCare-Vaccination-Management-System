@@ -40,7 +40,8 @@ $inventory = $conn->query(
 <body class="dashboard-body">
 <div class="dashboard-layout">
 <?php include "sidebar.php"; ?>
-<main class="dashboard-main"><section class="dashboard-content">
+<main class="dashboard-main">
+<?php include "../includes/portal_header.php"; ?><section class="dashboard-content">
     <h1>Hospital vaccine inventory</h1>
     <div class="dashboard-card">
         <form method="POST">

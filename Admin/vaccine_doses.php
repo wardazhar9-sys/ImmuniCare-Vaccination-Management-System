@@ -64,6 +64,7 @@ $doses = $conn->query(
 <div class="dashboard-layout">
 <?php include "sidebar.php"; ?>
 <main class="dashboard-main">
+<?php include "../includes/portal_header.php"; ?>
     <section class="dashboard-content">
         <h1>Vaccine dose definitions</h1>
         <?php if ($message !== ""): ?><div class="appointment-message"><?php echo e($message); ?></div><?php endif; ?>

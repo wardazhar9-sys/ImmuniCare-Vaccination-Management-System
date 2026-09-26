@@ -12700,3 +12700,63 @@ body {
         margin-bottom: 14px;
     }
 }
+
+/* Prevent cramped action groups and controls */
+.user-actions,
+.booking-actions,
+.vaccine-actions,
+.profile-section-action,
+.form-actions,
+.booking-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.user-actions button,
+.booking-actions button,
+.vaccine-actions button,
+.profile-section-action button,
+.form-actions button,
+.booking-filter-actions button,
+.users-search-form button {
+    min-height: 38px;
+    line-height: 1.2;
+}
+
+.users-search-form {
+    flex-wrap: wrap;
+    row-gap: 10px;
+}
+
+.users-search-form input,
+.users-search-form select {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.notification-dropdown {
+    max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 600px) {
+    .user-actions,
+    .booking-actions,
+    .vaccine-actions,
+    .profile-section-action,
+    .form-actions,
+    .booking-filter-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .user-actions > *,
+    .booking-actions > *,
+    .vaccine-actions > *,
+    .profile-section-action > *,
+    .form-actions > *,
+    .booking-filter-actions > * {
+        max-width: 100%;
+    }
+}

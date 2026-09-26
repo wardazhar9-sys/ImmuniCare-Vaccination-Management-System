@@ -177,93 +177,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
 
 
     <!-- ================= SIDEBAR ================= -->
-
-    <aside class="dashboard-sidebar">
-
-        <div class="sidebar-brand">
-
-            <img
-                src="../assets/images/immunicare-logo-hospital-sidebar.svg"
-                alt="ImmuniCare Hospital Portal"
-                class="sidebar-brand-image"
-            >
-
-        </div>
-
-
-        <nav class="sidebar-nav">
-
-
-            <div class="nav-section-title">
-                MAIN MENU
-            </div>
-
-
-            <a href="dashboard.php" class="sidebar-link">
-
-                <span class="sidebar-icon">⌂</span>
-
-                <span>Dashboard</span>
-
-            </a>
-
-
-            <a href="appointments.php" class="sidebar-link">
-
-                <span class="sidebar-icon">▣</span>
-
-                <span>Appointments</span>
-
-            </a>
-
-
-            <a href="vaccinations.php" class="sidebar-link active">
-
-                <span class="sidebar-icon">✚</span>
-
-                <span>Vaccinations</span>
-
-            </a>
-
-
-            <a href="schedule.php" class="sidebar-link">
-
-                <span class="sidebar-icon">▤</span>
-
-                <span>Vaccination Schedule</span>
-
-            </a>
-
-
-            <div class="nav-section-title dashboard-nav-spacing">
-                ACCOUNT
-            </div>
-
-
-            <a href="profile.php" class="sidebar-link">
-
-                <span class="sidebar-icon">♙</span>
-
-                <span>My Profile</span>
-
-            </a>
-
-        </nav>
-
-
-        <div class="sidebar-bottom">
-
-            <a href="logout.php" class="sidebar-link logout-link">
-
-                <span class="sidebar-icon">↪</span>
-
-                <span>Logout</span>
-
-            </a>
-
-        </div>
-
-    </aside>
+<?php include "sidebar.php"; ?>
 
 
 
@@ -274,55 +188,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
 
         <!-- HEADER -->
 
-        <header class="dashboard-header">
-
-            <div class="header-page-title">
-
-                <h1>Vaccinations</h1>
-
-                <p>Record and manage children's vaccination records.</p>
-
-            </div>
-
-
-            <div class="header-actions">
-
-                <button class="notification-button" type="button">
-
-                    🔔
-
-                    <span class="notification-dot"></span>
-
-                </button>
-
-
-                <div class="header-divider"></div>
-
-
-                <div class="profile-mini">
-
-                    <div class="profile-avatar">
-
-                        <?php echo strtoupper(substr($name, 0, 1)); ?>
-
-                    </div>
-
-
-                    <div class="profile-info">
-
-                        <strong>
-                            <?php echo htmlspecialchars($name); ?>
-                        </strong>
-
-                        <span>Hospital</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </header>
+        <?php include "../includes/portal_header.php"; ?>
 
 
 

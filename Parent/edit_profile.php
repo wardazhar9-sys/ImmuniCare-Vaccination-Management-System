@@ -65,14 +65,7 @@ $stmt->close();
         <?php include "sidebar.php"; ?>
         <main class="dashboard-main">
 
-            <header class="dashboard-header">
-
-                <div class="header-page-title">
-                    <h1>Edit Profile</h1>
-                    <p>Update your personal information</p>
-                </div>
-
-            </header>
+            <?php include "../includes/portal_header.php"; ?>
 
             <section class="dashboard-content">
 

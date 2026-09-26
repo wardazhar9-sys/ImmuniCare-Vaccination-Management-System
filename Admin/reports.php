@@ -49,6 +49,7 @@ if (($_GET["format"] ?? "") === "csv") {
 <div class="dashboard-layout">
 <?php include "sidebar.php"; ?>
 <main class="dashboard-main">
+<?php include "../includes/portal_header.php"; ?>
     <section class="dashboard-content">
         <div class="section-heading">
             <h1>Reports</h1>

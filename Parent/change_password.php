@@ -56,14 +56,7 @@ if (isset($_POST["change_password"])) {
         <?php include "sidebar.php"; ?>
         <main class="dashboard-main">
 
-            <header class="dashboard-header">
-
-                <div class="header-page-title">
-                    <h1>Change Password</h1>
-                    <p>Update your ImmuniCare account password</p>
-                </div>
-
-            </header>
+            <?php include "../includes/portal_header.php"; ?>
 
             <section class="dashboard-content">
 

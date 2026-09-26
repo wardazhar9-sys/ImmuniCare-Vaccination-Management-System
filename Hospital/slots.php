@@ -56,7 +56,8 @@ $slots = $stmt->get_result();
 <body class="dashboard-body">
 <div class="parent-dashboard">
 <?php include "sidebar.php"; ?>
-<main class="dashboard-main"><section class="dashboard-content">
+<main class="dashboard-main">
+<?php include "../includes/portal_header.php"; ?><section class="dashboard-content">
     <h1>Appointment slots</h1>
     <?php if ($message !== ""): ?><div class="appointment-message"><?php echo e($message); ?></div><?php endif; ?>
     <div class="dashboard-card"><form method="POST">
