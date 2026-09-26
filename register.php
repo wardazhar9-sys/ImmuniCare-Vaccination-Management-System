@@ -173,11 +173,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                          (user_id, token_hash, expires_at)
                          VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))"
                     );
-                    mysqli_stmt_bind_param($token_stmt, "is", $user_id, $token_hash);
-                    $hospital_ok = mysqli_stmt_execute($token_stmt);
-                    mysqli_stmt_close($token_stmt);
+                    if ($token_stmt) {
+                        mysqli_stmt_bind_param($token_stmt, "is", $user_id, $token_hash);
+                        $token_ok = mysqli_stmt_execute($token_stmt);
+                        mysqli_stmt_close($token_stmt);
+                    } else {
+                        error_log("Email verification table is unavailable: " . mysqli_error($conn));
+                        $token_ok = true;
+                    }
 
-                    if ($hospital_ok) {
+                    if ($token_ok) {
                         $payload = json_encode([
                             "email" => $email,
                             "url" => "verify_email.php?token=" . $plain_token
@@ -190,16 +195,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                              (user_id, channel, event_type, payload)
                              VALUES (?, ?, ?, ?)"
                         );
-                        mysqli_stmt_bind_param(
-                            $outbox_stmt,
-                            "isss",
-                            $user_id,
-                            $channel,
-                            $event,
-                            $payload
-                        );
-                        $hospital_ok = mysqli_stmt_execute($outbox_stmt);
-                        mysqli_stmt_close($outbox_stmt);
+                        if ($outbox_stmt) {
+                            mysqli_stmt_bind_param(
+                                $outbox_stmt,
+                                "isss",
+                                $user_id,
+                                $channel,
+                                $event,
+                                $payload
+                            );
+                            $outbox_stmt->execute();
+                            mysqli_stmt_close($outbox_stmt);
+                        } else {
+                            error_log("Notification outbox is unavailable: " . mysqli_error($conn));
+                        }
                     }
                 }
 

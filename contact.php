@@ -17,9 +17,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt = $conn->prepare(
             "INSERT INTO contact_messages (name, email, subject, message) VALUES (?, ?, ?, ?)"
         );
-        $stmt->bind_param("ssss", $name, $email, $subject, $body);
-        $saved = $stmt->execute();
-        $stmt->close();
+        if ($stmt) {
+            $stmt->bind_param("ssss", $name, $email, $subject, $body);
+            $saved = $stmt->execute();
+            $stmt->close();
+        } else {
+            error_log("Contact message table is unavailable: " . mysqli_error($conn));
+            $saved = false;
+        }
         $message = $saved ? "Your message has been received." : "Unable to send your message.";
         $message_type = $saved ? "success" : "error";
     }
