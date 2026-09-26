@@ -12630,6 +12630,11 @@ body {
     margin-top: 24px;
 }
 
+.dashboard-stats + .profile-section-card,
+.profile-stat-grid + .profile-section-card {
+    margin-top: 24px;
+}
+
 .dashboard-card,
 .users-card,
 .booking-card,
