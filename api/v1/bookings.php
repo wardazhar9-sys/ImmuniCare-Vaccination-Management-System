@@ -54,7 +54,8 @@ $result = create_booking_workflow(
     (int)($input['vaccine_id'] ?? 0),
     (int)($input['hospital_id'] ?? 0),
     (string)($input['booking_date'] ?? ''),
-    (string)($input['booking_time'] ?? '')
+    (string)($input['booking_time'] ?? ''),
+    (int)($input['slot_id'] ?? 0)
 );
 
 if (!$result['ok']) {

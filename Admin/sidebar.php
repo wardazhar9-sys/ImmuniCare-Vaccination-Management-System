@@ -3,7 +3,7 @@ $admin_page = basename($_SERVER['PHP_SELF']);
 ?>
 <aside class="dashboard-sidebar">
     <div class="sidebar-brand">
-        <img src="../assets/images/immunicare-logo-sidebar.svg" alt="ImmuniCare" class="sidebar-brand-image">
+        <img src="../assets/images/immunicare-logo-admin-sidebar.svg" alt="ImmuniCare" class="sidebar-brand-image">
     </div>
     <nav class="sidebar-nav">
         <div class="nav-section-title">MAIN MENU</div>

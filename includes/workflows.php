@@ -7,7 +7,8 @@ function create_booking_workflow(
     int $vaccineId,
     int $hospitalId,
     string $date,
-    string $time
+    string $time,
+    int $slotId = 0
 ): array {
     if (
         $childId <= 0 || $vaccineId <= 0 || $hospitalId <= 0 ||
@@ -63,13 +64,22 @@ function create_booking_workflow(
 
     mysqli_begin_transaction($conn);
 
-    $slot_stmt = $conn->prepare(
-        "SELECT id, capacity, booked_count, status
-         FROM hospital_slots
-         WHERE hospital_id = ? AND slot_date = ? AND slot_time = ?
-         FOR UPDATE"
-    );
-    $slot_stmt->bind_param('iss', $hospitalId, $date, $time);
+    if ($slotId > 0) {
+        $slot_stmt = $conn->prepare(
+            "SELECT id, capacity, booked_count, status, slot_date, slot_time
+             FROM hospital_slots
+             WHERE id = ? AND hospital_id = ? FOR UPDATE"
+        );
+        $slot_stmt->bind_param('ii', $slotId, $hospitalId);
+    } else {
+        $slot_stmt = $conn->prepare(
+            "SELECT id, capacity, booked_count, status, slot_date, slot_time
+             FROM hospital_slots
+             WHERE hospital_id = ? AND slot_date = ? AND slot_time = ?
+             FOR UPDATE"
+        );
+        $slot_stmt->bind_param('iss', $hospitalId, $date, $time);
+    }
     $slot_stmt->execute();
     $slot = $slot_stmt->get_result()->fetch_assoc();
     $slot_stmt->close();
@@ -80,12 +90,15 @@ function create_booking_workflow(
     }
 
     $status = 'Pending';
+    $slotId = (int)$slot['id'];
+    $date = $slot['slot_date'];
+    $time = substr($slot['slot_time'], 0, 5);
     $stmt = $conn->prepare(
         "INSERT INTO bookings
-         (parent_id, child_id, hospital_id, vaccine_id, booking_date, booking_time, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?)"
+         (parent_id, child_id, hospital_id, vaccine_id, slot_id, booking_date, booking_time, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param('iiiisss', $parentId, $childId, $hospitalId, $vaccineId, $date, $time, $status);
+    $stmt->bind_param('iiiiisss', $parentId, $childId, $hospitalId, $vaccineId, $slotId, $date, $time, $status);
     $saved = $stmt->execute();
     $bookingId = $stmt->insert_id;
     $stmt->close();

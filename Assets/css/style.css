@@ -12655,6 +12655,13 @@ body {
     line-height: 1.6;
 }
 
+.form-help {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+    font-size: 12px;
+}
+
 .dashboard-card button,
 .dashboard-card input,
 .dashboard-card select,
@@ -12758,5 +12765,62 @@ body {
     .form-actions > *,
     .booking-filter-actions > * {
         max-width: 100%;
+    }
+}
+
+.admin-tool-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.admin-tool-form .tool-field {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+}
+
+.admin-tool-form label {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.admin-tool-form input,
+.admin-tool-form select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid #d8e2f0;
+    border-radius: 9px;
+    background: #fff;
+    color: #0f172a;
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.admin-tool-form button {
+    min-height: 42px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+@media (max-width: 900px) {
+    .admin-tool-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-tool-form {
+        grid-template-columns: 1fr;
     }
 }

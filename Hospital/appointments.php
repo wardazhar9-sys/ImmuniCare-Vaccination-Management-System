@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($updated) {
             $info_stmt = $conn->prepare(
-                "SELECT b.parent_id, c.child_name, v.vaccine_name, v.dose_number
+                "SELECT b.parent_id, b.slot_id, c.child_name, v.vaccine_name, v.dose_number
                  FROM bookings b
                  JOIN children c ON c.id = b.child_id
                  JOIN vaccines v ON v.id = b.vaccine_id
@@ -57,6 +57,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $info_stmt->close();
 
             $notice = $new_status === "Approved" ? "approved" : "rejected";
+            if ($new_status === "Rejected" && $info["slot_id"]) {
+                $slot_update = $conn->prepare(
+                    "UPDATE hospital_slots
+                     SET booked_count = GREATEST(booked_count - 1, 0)
+                     WHERE id = ?"
+                );
+                $slot_update->bind_param("i", $info["slot_id"]);
+                $updated = $updated && $slot_update->execute();
+                $slot_update->close();
+            }
             $updated = $info && notify_user(
                 $conn,
                 (int)$info["parent_id"],

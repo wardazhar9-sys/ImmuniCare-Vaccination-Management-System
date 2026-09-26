@@ -69,7 +69,7 @@ $stmt->close();
 
             <section class="dashboard-content">
 
-            <?php if (isset($error_message)): ?>
+            <?php if (!empty($error_message)): ?>
 
     <div class="profile-error-message">
         <?php echo htmlspecialchars($error_message); ?>

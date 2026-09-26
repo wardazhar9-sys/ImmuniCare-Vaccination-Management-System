@@ -159,7 +159,7 @@ if (
     if (mysqli_stmt_execute($update_stmt)) {
         $info_stmt = mysqli_prepare(
             $conn,
-            "SELECT parent_id FROM bookings WHERE id = ?"
+            "SELECT parent_id, slot_id FROM bookings WHERE id = ?"
         );
         mysqli_stmt_bind_param($info_stmt, "i", $booking_id);
         mysqli_stmt_execute($info_stmt);
@@ -167,6 +167,17 @@ if (
         mysqli_stmt_close($info_stmt);
 
         if ($info) {
+            if ($new_status === "Rejected" && $info["slot_id"]) {
+                $slot_stmt = mysqli_prepare(
+                    $conn,
+                    "UPDATE hospital_slots
+                     SET booked_count = GREATEST(booked_count - 1, 0)
+                     WHERE id = ?"
+                );
+                mysqli_stmt_bind_param($slot_stmt, "i", $info["slot_id"]);
+                mysqli_stmt_execute($slot_stmt);
+                mysqli_stmt_close($slot_stmt);
+            }
             notify_user(
                 $conn,
                 (int)$info["parent_id"],

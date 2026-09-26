@@ -44,14 +44,12 @@ $inventory = $conn->query(
 <?php include "../includes/portal_header.php"; ?><section class="dashboard-content">
     <h1>Hospital vaccine inventory</h1>
     <div class="dashboard-card">
-        <form method="POST">
+        <form method="POST" class="admin-tool-form">
             <?php echo csrf_field(); ?>
-            <label for="hospital_id">Hospital</label>
-            <select id="hospital_id" name="hospital_id" required><?php while ($row = $hospitals->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["hospital_name"]); ?></option><?php endwhile; ?></select>
-            <label for="vaccine_id">Vaccine</label>
-            <select id="vaccine_id" name="vaccine_id" required><?php while ($row = $vaccines->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["vaccine_name"]); ?></option><?php endwhile; ?></select>
-            <label for="quantity">Quantity</label><input id="quantity" type="number" min="0" name="quantity" required>
-            <label for="reorder_level">Reorder level</label><input id="reorder_level" type="number" min="0" name="reorder_level" required>
+            <div class="tool-field"><label for="hospital_id">Hospital</label><select id="hospital_id" name="hospital_id" required><?php while ($row = $hospitals->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["hospital_name"]); ?></option><?php endwhile; ?></select></div>
+            <div class="tool-field"><label for="vaccine_id">Vaccine</label><select id="vaccine_id" name="vaccine_id" required><?php while ($row = $vaccines->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["vaccine_name"]); ?></option><?php endwhile; ?></select></div>
+            <div class="tool-field"><label for="quantity">Quantity</label><input id="quantity" type="number" min="0" name="quantity" required></div>
+            <div class="tool-field"><label for="reorder_level">Reorder level</label><input id="reorder_level" type="number" min="0" name="reorder_level" required></div>
             <button type="submit">Save inventory</button>
         </form>
     </div>

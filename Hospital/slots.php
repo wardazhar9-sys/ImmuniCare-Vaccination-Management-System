@@ -60,11 +60,11 @@ $slots = $stmt->get_result();
 <?php include "../includes/portal_header.php"; ?><section class="dashboard-content">
     <h1>Appointment slots</h1>
     <?php if ($message !== ""): ?><div class="appointment-message"><?php echo e($message); ?></div><?php endif; ?>
-    <div class="dashboard-card"><form method="POST">
+    <div class="dashboard-card"><form method="POST" class="admin-tool-form">
         <?php echo csrf_field(); ?>
-        <label for="slot_date">Date</label><input id="slot_date" type="date" name="slot_date" min="<?php echo date("Y-m-d"); ?>" required>
-        <label for="slot_time">Time</label><input id="slot_time" type="time" name="slot_time" required>
-        <label for="capacity">Capacity</label><input id="capacity" type="number" name="capacity" min="1" value="1" required>
+        <div class="tool-field"><label for="slot_date">Date</label><input id="slot_date" type="date" name="slot_date" min="<?php echo date("Y-m-d"); ?>" required></div>
+        <div class="tool-field"><label for="slot_time">Time</label><input id="slot_time" type="time" name="slot_time" required></div>
+        <div class="tool-field"><label for="capacity">Capacity</label><input id="capacity" type="number" name="capacity" min="1" value="1" required></div>
         <button type="submit">Save slot</button>
     </form></div>
     <div class="users-card"><table class="users-table"><thead><tr><th>Date</th><th>Time</th><th>Capacity</th><th>Booked</th><th>Status</th></tr></thead><tbody>

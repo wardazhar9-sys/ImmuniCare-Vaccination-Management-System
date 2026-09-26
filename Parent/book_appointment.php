@@ -1,5 +1,6 @@
 <?php
 require_once "../includes/app.php";
+require_once "../includes/workflows.php";
 
 $user = require_role($conn, "parent");
 $parent_id = (int)$user["id"];
@@ -11,102 +12,37 @@ if (isset($_POST["book_appointment"])) {
     verify_csrf();
     $child_id = post_int("child_id");
     $vaccine_id = post_int("vaccine_id");
-    $hospital_id = post_int("hospital_id");
-    $booking_date = post_string("booking_date", 10);
-    $booking_time = post_string("booking_time", 5);
+    $slot_id = post_int("slot_id");
 
-    if (
-        $child_id <= 0 || $vaccine_id <= 0 || $hospital_id <= 0 ||
-        !valid_date($booking_date) || !valid_time($booking_time) ||
-        strtotime("$booking_date $booking_time") <= time()
-    ) {
-        $message = "Choose a valid future appointment date and time.";
+    $slot_stmt = $conn->prepare(
+        "SELECT s.slot_date, s.slot_time, s.hospital_id
+         FROM hospital_slots s JOIN hospitals h ON h.id = s.hospital_id
+         WHERE s.id = ? AND s.status = 'Open' AND s.booked_count < s.capacity
+           AND h.status = 'Active' AND s.slot_date >= CURDATE()"
+    );
+    $slot_stmt->bind_param("i", $slot_id);
+    $slot_stmt->execute();
+    $slot = $slot_stmt->get_result()->fetch_assoc();
+    $slot_stmt->close();
+
+    if (!$slot) {
+        $message = "That slot is no longer available. Choose another slot.";
         $message_type = "error";
     } else {
-        $child_stmt = $conn->prepare(
-            "SELECT child_name FROM children
-             WHERE id = ? AND parent_id = ? AND archived_at IS NULL"
+        $result = create_booking_workflow(
+            $conn,
+            $parent_id,
+            $child_id,
+            $vaccine_id,
+            (int)$slot["hospital_id"],
+            $slot["slot_date"],
+            substr($slot["slot_time"], 0, 5),
+            $slot_id
         );
-        $child_stmt->bind_param("ii", $child_id, $parent_id);
-        $child_stmt->execute();
-        $child = $child_stmt->get_result()->fetch_assoc();
-        $child_stmt->close();
-
-        $vaccine_stmt = $conn->prepare(
-            "SELECT vaccine_name, dose_number FROM vaccines
-             WHERE id = ? AND availability = 'Available'"
-        );
-        $vaccine_stmt->bind_param("i", $vaccine_id);
-        $vaccine_stmt->execute();
-        $vaccine = $vaccine_stmt->get_result()->fetch_assoc();
-        $vaccine_stmt->close();
-
-        $hospital_stmt = $conn->prepare(
-            "SELECT id, user_id, hospital_name FROM hospitals
-             WHERE id = ? AND status = 'Active'"
-        );
-        $hospital_stmt->bind_param("i", $hospital_id);
-        $hospital_stmt->execute();
-        $hospital = $hospital_stmt->get_result()->fetch_assoc();
-        $hospital_stmt->close();
-
-        if (!$child || !$vaccine || !$hospital) {
-            $message = "The selected child, vaccine, or hospital is unavailable.";
-            $message_type = "error";
-        } else {
-            $conflict_stmt = $conn->prepare(
-                "SELECT id FROM bookings
-                 WHERE child_id = ? AND booking_date = ? AND booking_time = ?
-                 AND status IN ('Pending', 'Approved') LIMIT 1"
-            );
-            $conflict_stmt->bind_param("iss", $child_id, $booking_date, $booking_time);
-            $conflict_stmt->execute();
-            $conflict = $conflict_stmt->get_result()->fetch_assoc();
-            $conflict_stmt->close();
-
-            if ($conflict) {
-                $message = "This child already has an appointment at that time.";
-                $message_type = "error";
-            } else {
-                mysqli_begin_transaction($conn);
-                $status = "Pending";
-                $stmt = $conn->prepare(
-                    "INSERT INTO bookings
-                     (parent_id, child_id, hospital_id, vaccine_id,
-                      booking_date, booking_time, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)"
-                );
-                $stmt->bind_param(
-                    "iiiisss", $parent_id, $child_id, $hospital_id,
-                    $vaccine_id, $booking_date, $booking_time, $status
-                );
-                $saved = $stmt->execute();
-                $booking_id = $stmt->insert_id;
-                $stmt->close();
-
-                if ($saved) {
-                    $saved = notify_user(
-                        $conn,
-                        (int)$hospital["user_id"],
-                        "New appointment",
-                        "A new vaccination appointment was booked for " . $child["child_name"] . ".",
-                        "appointment",
-                        "Hospital/appointments.php?booking_id=" . $booking_id
-                    );
-                }
-
-                if ($saved) {
-                    audit($conn, $parent_id, "booking.created", "booking", $booking_id);
-                    mysqli_commit($conn);
-                    $message = "Appointment booked and sent for hospital approval.";
-                    $message_type = "success";
-                } else {
-                    mysqli_rollback($conn);
-                    $message = "Unable to book the appointment.";
-                    $message_type = "error";
-                }
-            }
-        }
+        $message = $result["ok"]
+            ? "Appointment booked and sent for hospital approval."
+            : $result["error"];
+        $message_type = $result["ok"] ? "success" : "error";
     }
 }
 
@@ -123,9 +59,13 @@ $vaccines_result = $conn->query(
      WHERE availability = 'Available' ORDER BY vaccine_name"
 );
 
-$hospitals_result = $conn->query(
-    "SELECT id, hospital_name, city FROM hospitals
-     WHERE status = 'Active' ORDER BY hospital_name"
+$slots_result = $conn->query(
+    "SELECT s.id, s.slot_date, s.slot_time, s.capacity, s.booked_count,
+            h.hospital_name, h.city
+     FROM hospital_slots s JOIN hospitals h ON h.id = s.hospital_id
+     WHERE s.status = 'Open' AND s.booked_count < s.capacity
+       AND h.status = 'Active' AND s.slot_date >= CURDATE()
+     ORDER BY s.slot_date, s.slot_time, h.hospital_name"
 );
 
 ?>
@@ -256,70 +196,28 @@ $hospitals_result = $conn->query(
                     </div>
 
 
-                    <!-- HOSPITAL -->
-
+                    <!-- SLOT -->
                     <div class="form-group">
-
-                        <label for="hospital_id">
-                            Select Hospital
-                        </label>
-
-                        <select name="hospital_id" id="hospital_id" required>
-
-                            <option value="">
-                                Select Hospital
-                            </option>
-
-                            <?php while ($hospital = mysqli_fetch_assoc($hospitals_result)): ?>
-
-                                <option value="<?php echo $hospital["id"]; ?>">
-
-                                    <?php echo htmlspecialchars($hospital["hospital_name"]); ?>
-                                    -
-                                    <?php echo htmlspecialchars($hospital["city"]); ?>
-
-                                </option>
-
-                            <?php endwhile; ?>
-
+                        <label for="slot_id">Select Available Slot</label>
+                        <select name="slot_id" id="slot_id" required>
+                            <option value="">Select hospital, date and time</option>
+                            <?php if (mysqli_num_rows($slots_result) === 0): ?>
+                                <option value="" disabled>No hospital slots are available.</option>
+                            <?php else: ?>
+                                <?php while ($slot = mysqli_fetch_assoc($slots_result)): ?>
+                                    <option value="<?php echo (int)$slot["id"]; ?>">
+                                        <?php echo htmlspecialchars($slot["hospital_name"]); ?>
+                                        - <?php echo htmlspecialchars($slot["city"]); ?>
+                                        - <?php echo htmlspecialchars($slot["slot_date"]); ?>
+                                        <?php echo date("h:i A", strtotime($slot["slot_time"])); ?>
+                                        (<?php echo (int)$slot["capacity"] - (int)$slot["booked_count"]; ?> left)
+                                    </option>
+                                <?php endwhile; ?>
+                            <?php endif; ?>
                         </select>
-
-                    </div>
-
-
-                    <!-- DATE -->
-
-                    <div class="form-group">
-
-                        <label for="booking_date">
-                            Appointment Date
-                        </label>
-
-                        <input
-                            type="date"
-                            name="booking_date"
-                            id="booking_date"
-                            required
-                        >
-
-                    </div>
-
-
-                    <!-- TIME -->
-
-                    <div class="form-group">
-
-                        <label for="booking_time">
-                            Appointment Time
-                        </label>
-
-                        <input
-                            type="time"
-                            name="booking_time"
-                            id="booking_time"
-                            required
-                        >
-
+                        <small class="form-help">
+                            Only open hospital slots can be booked.
+                        </small>
                     </div>
 
 

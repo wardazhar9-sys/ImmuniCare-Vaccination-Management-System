@@ -69,22 +69,15 @@ $doses = $conn->query(
         <h1>Vaccine dose definitions</h1>
         <?php if ($message !== ""): ?><div class="appointment-message"><?php echo e($message); ?></div><?php endif; ?>
         <div class="dashboard-card">
-            <form method="POST">
+            <form method="POST" class="admin-tool-form">
                 <?php echo csrf_field(); ?>
-                <label for="vaccine_id">Vaccine</label>
-                <select id="vaccine_id" name="vaccine_id" required>
-                    <?php while ($vaccine = $vaccines->fetch_assoc()): ?>
-                        <option value="<?php echo (int)$vaccine["id"]; ?>"><?php echo e($vaccine["vaccine_name"]); ?></option>
-                    <?php endwhile; ?>
-                </select>
-                <label for="dose_number">Dose number</label>
-                <input id="dose_number" type="number" min="1" name="dose_number" required>
-                <label for="recommended_age_days">Recommended age (days)</label>
-                <input id="recommended_age_days" type="number" min="0" name="recommended_age_days">
-                <label for="minimum_interval_days">Minimum interval (days)</label>
-                <input id="minimum_interval_days" type="number" min="0" name="minimum_interval_days">
-                <label for="clinical_source">Clinical source/version</label>
-                <input id="clinical_source" name="clinical_source">
+                <div class="tool-field"><label for="vaccine_id">Vaccine</label><select id="vaccine_id" name="vaccine_id" required>
+                    <?php while ($vaccine = $vaccines->fetch_assoc()): ?><option value="<?php echo (int)$vaccine["id"]; ?>"><?php echo e($vaccine["vaccine_name"]); ?></option><?php endwhile; ?>
+                </select></div>
+                <div class="tool-field"><label for="dose_number">Dose number</label><input id="dose_number" type="number" min="1" name="dose_number" required></div>
+                <div class="tool-field"><label for="recommended_age_days">Recommended age (days)</label><input id="recommended_age_days" type="number" min="0" name="recommended_age_days"></div>
+                <div class="tool-field"><label for="minimum_interval_days">Minimum interval (days)</label><input id="minimum_interval_days" type="number" min="0" name="minimum_interval_days"></div>
+                <div class="tool-field"><label for="clinical_source">Clinical source/version</label><input id="clinical_source" name="clinical_source"></div>
                 <button type="submit">Save dose</button>
             </form>
         </div>

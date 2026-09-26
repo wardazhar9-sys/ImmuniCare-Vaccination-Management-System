@@ -430,7 +430,6 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
-
 -- Run after vaccination_management_system(1).sql.
 -- MariaDB/MySQLi only.
 
@@ -586,7 +585,6 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 INSERT IGNORE INTO schema_migrations (version)
 VALUES ('001_harden_schema');
-
 
 -- Domain expansion migration. Apply once after 001_harden_schema.sql.
 
@@ -807,7 +805,6 @@ CREATE TABLE IF NOT EXISTS api_tokens (
 INSERT IGNORE INTO schema_migrations (version)
 VALUES ('002_domain_expansion');
 
-
 -- Reports, preferences, and migration bookkeeping.
 
 CREATE TABLE IF NOT EXISTS user_preferences (
@@ -838,3 +835,24 @@ CREATE TABLE IF NOT EXISTS report_exports (
 
 INSERT IGNORE INTO schema_migrations (version)
 VALUES ('003_reporting_preferences');
+
+-- Bind every new booking to the hospital slot it reserves.
+
+ALTER TABLE bookings
+    ADD COLUMN IF NOT EXISTS slot_id INT NULL AFTER hospital_id;
+
+UPDATE bookings b
+JOIN hospital_slots s
+    ON s.hospital_id = b.hospital_id
+    AND s.slot_date = b.booking_date
+    AND s.slot_time = b.booking_time
+SET b.slot_id = s.id
+WHERE b.slot_id IS NULL;
+
+ALTER TABLE bookings
+    ADD KEY idx_bookings_slot (slot_id),
+    ADD CONSTRAINT fk_bookings_slot
+        FOREIGN KEY (slot_id) REFERENCES hospital_slots(id);
+
+INSERT IGNORE INTO schema_migrations (version)
+VALUES ('004_booking_slots');
