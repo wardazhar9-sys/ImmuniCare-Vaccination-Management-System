@@ -101,6 +101,7 @@ $stmt->close();
                                     type="text"
                                     name="name"
                                     value="<?php echo htmlspecialchars($parent["name"]); ?>"
+                                    maxlength="100"
                                     required
                                 >
 
@@ -116,6 +117,7 @@ $stmt->close();
                                     type="email"
                                     name="email"
                                     value="<?php echo htmlspecialchars($parent["email"]); ?>"
+                                    maxlength="150"
                                     required
 >
 

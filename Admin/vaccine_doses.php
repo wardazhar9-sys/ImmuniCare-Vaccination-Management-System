@@ -14,7 +14,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $minimum_interval = post_int("minimum_interval_days");
     $source = post_string("clinical_source", 255);
 
-    if ($vaccine_id <= 0 || $dose_number <= 0) {
+    if (
+        $vaccine_id <= 0 || $dose_number <= 0 || $dose_number > 100 ||
+        $recommended_age < 0 || $recommended_age > 36500 ||
+        $minimum_interval < 0 || $minimum_interval > 36500
+    ) {
         $message = "Vaccine and dose number are required.";
     } else {
         $stmt = $conn->prepare(
@@ -74,10 +78,10 @@ $doses = $conn->query(
                 <div class="tool-field"><label for="vaccine_id">Vaccine</label><select id="vaccine_id" name="vaccine_id" required>
                     <?php while ($vaccine = $vaccines->fetch_assoc()): ?><option value="<?php echo (int)$vaccine["id"]; ?>"><?php echo e($vaccine["vaccine_name"]); ?></option><?php endwhile; ?>
                 </select></div>
-                <div class="tool-field"><label for="dose_number">Dose number</label><input id="dose_number" type="number" min="1" name="dose_number" required></div>
-                <div class="tool-field"><label for="recommended_age_days">Recommended age (days)</label><input id="recommended_age_days" type="number" min="0" name="recommended_age_days"></div>
-                <div class="tool-field"><label for="minimum_interval_days">Minimum interval (days)</label><input id="minimum_interval_days" type="number" min="0" name="minimum_interval_days"></div>
-                <div class="tool-field"><label for="clinical_source">Clinical source/version</label><input id="clinical_source" name="clinical_source"></div>
+                <div class="tool-field"><label for="dose_number">Dose number</label><input id="dose_number" type="number" min="1" max="100" name="dose_number" required></div>
+                <div class="tool-field"><label for="recommended_age_days">Recommended age (days)</label><input id="recommended_age_days" type="number" min="0" max="36500" name="recommended_age_days"></div>
+                <div class="tool-field"><label for="minimum_interval_days">Minimum interval (days)</label><input id="minimum_interval_days" type="number" min="0" max="36500" name="minimum_interval_days"></div>
+                <div class="tool-field"><label for="clinical_source">Clinical source/version</label><input id="clinical_source" name="clinical_source" maxlength="255"></div>
                 <button type="submit">Save dose</button>
             </form>
         </div>

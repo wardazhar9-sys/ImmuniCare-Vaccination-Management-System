@@ -612,6 +612,7 @@ $flash = flash_get();
                         type="text"
                         id="edit_user_name"
                         name="name"
+                        maxlength="100"
                         required
                     >
 
@@ -630,6 +631,7 @@ $flash = flash_get();
                         type="email"
                         id="edit_user_email"
                         name="email"
+                        maxlength="150"
                         required
                     >
 

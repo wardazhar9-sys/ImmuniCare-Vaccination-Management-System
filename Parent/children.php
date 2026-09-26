@@ -1315,6 +1315,7 @@ body.modal-open {
                     name="child_name"
                     placeholder="Enter child's full name"
                     value="<?php echo htmlspecialchars($child_name ?? ''); ?>"
+                    maxlength="100"
                     required
                 >
 
@@ -1331,6 +1332,7 @@ body.modal-open {
                     type="date"
                     name="date_of_birth"
                     value="<?php echo htmlspecialchars($date_of_birth ?? ''); ?>"
+                    max="<?php echo date('Y-m-d'); ?>"
                     required
                 >
 
@@ -1343,7 +1345,7 @@ body.modal-open {
 
                 <label>Gender</label>
 
-                <select name="gender" required>
+                <select id="add_child_gender" name="gender" required>
 
                     <option value="">Select Gender</option>
 
@@ -1368,7 +1370,7 @@ body.modal-open {
 
                 <label>Blood Group</label>
 
-                <select name="blood_group" required>
+                <select id="add_child_blood_group" name="blood_group" required>
 
                     <option value="">Select Blood Group</option>
 
@@ -1427,6 +1429,7 @@ body.modal-open {
                     name="address"
                     placeholder="Enter child's address"
                     rows="4"
+                    maxlength="500"
                     required
                 ><?php echo htmlspecialchars($address ?? ''); ?></textarea>
 
@@ -1468,11 +1471,11 @@ body.modal-open {
                 <input type="hidden" id="parent_edit_child_id" name="child_id">
                 <div class="user-form-group">
                     <label for="parent_edit_child_name">Child Name</label>
-                    <input id="parent_edit_child_name" name="child_name" required>
+                    <input id="parent_edit_child_name" name="child_name" maxlength="100" required>
                 </div>
                 <div class="user-form-group">
                     <label for="parent_edit_child_dob">Date of Birth</label>
-                    <input id="parent_edit_child_dob" type="date" name="date_of_birth" required>
+                    <input id="parent_edit_child_dob" type="date" name="date_of_birth" max="<?php echo date('Y-m-d'); ?>" required>
                 </div>
                 <div class="user-form-group">
                     <label for="parent_edit_child_gender">Gender</label>
@@ -1491,7 +1494,7 @@ body.modal-open {
                 </div>
                 <div class="user-form-group">
                     <label for="parent_edit_child_address">Address</label>
-                    <textarea id="parent_edit_child_address" name="address" rows="3" required></textarea>
+                    <textarea id="parent_edit_child_address" name="address" rows="3" maxlength="500" required></textarea>
                 </div>
             </div>
             <div class="user-modal-footer">

@@ -72,6 +72,7 @@ if (!$child) {
     <title>Edit Child - ImmuniCare</title>
 
     <link rel="stylesheet" href="../assets/css/style.css">
+<script src="../assets/js/form-validation.js" defer></script>
 
     <style>
 
@@ -267,8 +268,10 @@ if (!$child) {
 
                     <input
                         type="text"
+                        id="child_name"
                         name="child_name"
                         value="<?php echo htmlspecialchars($child['child_name']); ?>"
+                        maxlength="100"
                         required
                     >
                 </div>
@@ -280,8 +283,10 @@ if (!$child) {
 
                     <input
                         type="date"
+                        id="date_of_birth"
                         name="date_of_birth"
                         value="<?php echo htmlspecialchars($child['date_of_birth']); ?>"
+                        max="<?php echo date('Y-m-d'); ?>"
                         required
                     >
                 </div>
@@ -291,7 +296,7 @@ if (!$child) {
                 <div class="form-group">
                     <label>Gender</label>
 
-                    <select name="gender" required>
+                    <select id="gender" name="gender" required>
 
                         <option value="Male"
                             <?php if ($child['gender'] == 'Male') echo 'selected'; ?>>
@@ -311,7 +316,7 @@ if (!$child) {
                 <div class="form-group">
                     <label>Blood Group</label>
 
-                    <select name="blood_group" required>
+                    <select id="blood_group" name="blood_group" required>
 
                         <option value="A+" <?php if ($child['blood_group'] == 'A+') echo 'selected'; ?>>A+</option>
                         <option value="A-" <?php if ($child['blood_group'] == 'A-') echo 'selected'; ?>>A-</option>
@@ -332,7 +337,9 @@ if (!$child) {
                     <label>Address</label>
 
                     <textarea
+                        id="address"
                         name="address"
+                        maxlength="500"
                         required
                     ><?php echo htmlspecialchars($child['address']); ?></textarea>
 

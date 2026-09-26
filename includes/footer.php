@@ -57,3 +57,4 @@
         </div>
     </div>
 </footer>
+<script src="assets/js/form-validation.js" defer></script>

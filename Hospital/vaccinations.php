@@ -388,6 +388,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
                                                     type="date"
                                                     name="vaccination_date"
                                                     value="<?php echo date("Y-m-d"); ?>"
+                                                    max="<?php echo date('Y-m-d'); ?>"
                                                     required
                                                 >
 
@@ -400,6 +401,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
                                                     name="remarks"
                                                     rows="2"
                                                     placeholder="Remarks"
+                                                    maxlength="500"
                                                 ></textarea>
 
                                                 <button type="submit">

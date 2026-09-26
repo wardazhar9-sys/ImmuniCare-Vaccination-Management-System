@@ -21,9 +21,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["update_child"])) {
     if (
         $child_id <= 0 ||
         $child_name === "" ||
-        $date_of_birth === "" ||
-        $gender === "" ||
-        $blood_group === "" ||
+        !valid_date($date_of_birth) ||
+        $date_of_birth > date("Y-m-d") ||
+        !in_array($gender, ["Male", "Female"], true) ||
+        !in_array($blood_group, ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], true) ||
         $address === ""
     ) {
         $_SESSION["children_message"] = "Please fill in all child details.";
@@ -937,6 +938,7 @@ $result = mysqli_stmt_get_result($stmt);
                         type="text"
                         id="edit_child_name"
                         name="child_name"
+                        maxlength="100"
                         required
                     >
 
@@ -955,6 +957,7 @@ $result = mysqli_stmt_get_result($stmt);
                             type="date"
                             id="edit_child_dob"
                             name="date_of_birth"
+                            max="<?php echo date('Y-m-d'); ?>"
                             required
                         >
 
@@ -1033,6 +1036,7 @@ $result = mysqli_stmt_get_result($stmt);
                     name="address"
                     rows="4"
                     placeholder="Enter child's address..."
+                    maxlength="500"
                     required>
                 </textarea>
                 </div>

@@ -74,6 +74,7 @@ if (strlen($token) !== 64) {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Reset Password | ImmuniCare</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/form-validation.js" defer></script>
 </head>
 <body class="login-body">
 <main class="auth-simple-page">
@@ -84,9 +85,9 @@ if (strlen($token) !== 64) {
             <?php echo csrf_field(); ?>
             <input type="hidden" name="token" value="<?php echo e($token); ?>">
             <label for="password">New password</label>
-            <input id="password" type="password" name="password" autocomplete="new-password" required>
+            <input id="password" type="password" name="password" autocomplete="new-password" minlength="8" maxlength="255" required>
             <label for="confirm_password">Confirm password</label>
-            <input id="confirm_password" type="password" name="confirm_password" autocomplete="new-password" required>
+            <input id="confirm_password" type="password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="255" required>
             <button type="submit">Save password</button>
         </form>
     <?php endif; ?>

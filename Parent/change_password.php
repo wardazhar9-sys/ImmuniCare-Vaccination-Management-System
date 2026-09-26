@@ -91,6 +91,9 @@ if (isset($_POST["change_password"])) {
                                 <input
                                     type="password"
                                     name="current_password"
+                                    autocomplete="current-password"
+                                    minlength="1"
+                                    maxlength="255"
                                     required
                                 >
 
@@ -105,6 +108,9 @@ if (isset($_POST["change_password"])) {
                                 <input
                                     type="password"
                                     name="new_password"
+                                    autocomplete="new-password"
+                                    minlength="8"
+                                    maxlength="255"
                                     required
                                 >
 
@@ -119,6 +125,9 @@ if (isset($_POST["change_password"])) {
                                 <input
                                     type="password"
                                     name="confirm_password"
+                                    autocomplete="new-password"
+                                    minlength="8"
+                                    maxlength="255"
                                     required
                                 >
 

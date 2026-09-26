@@ -1443,6 +1443,7 @@ $result =
                         type="date"
                         name="scheduled_date"
                         id="edit_schedule_date"
+                        min="<?php echo date('Y-m-d'); ?>"
                         required
                     >
 

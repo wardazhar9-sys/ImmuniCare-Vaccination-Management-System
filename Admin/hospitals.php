@@ -982,6 +982,7 @@ $result = mysqli_stmt_get_result($stmt);
                         type="text"
                         id="edit_hospital_name"
                         name="hospital_name"
+                        maxlength="150"
                         required
                     >
 
@@ -998,6 +999,9 @@ $result = mysqli_stmt_get_result($stmt);
                         type="text"
                         id="edit_hospital_phone"
                         name="phone"
+                        maxlength="30"
+                        pattern="[0-9+() .-]{7,30}"
+                        inputmode="tel"
                         required
                     >
 
@@ -1015,6 +1019,7 @@ $result = mysqli_stmt_get_result($stmt);
                         name="address"
                         rows="4"
                         placeholder="Enter hospital address..."
+                        maxlength="500"
                         required
                     ></textarea>
 
@@ -1033,6 +1038,7 @@ $result = mysqli_stmt_get_result($stmt);
                             type="text"
                             id="edit_hospital_city"
                             name="city"
+                            maxlength="100"
                             required
                         >
 
@@ -1049,6 +1055,7 @@ $result = mysqli_stmt_get_result($stmt);
                             type="text"
                             id="edit_hospital_location"
                             name="location"
+                            maxlength="255"
                             required
                         >
 

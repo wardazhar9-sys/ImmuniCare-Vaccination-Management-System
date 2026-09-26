@@ -57,9 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
     // Check password length
-    elseif (strlen($password) < 6) {
+    elseif (strlen($password) < 8) {
 
-        $message = "Password must be at least 6 characters long.";
+        $message = "Password must be at least 8 characters long.";
         $message_type = "error";
 
     }
@@ -274,6 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         rel="stylesheet"
         href="assets/css/style.css"
     >
+    <script src="assets/js/form-validation.js" defer></script>
 
 </head>
 
@@ -364,6 +365,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             name="name"
                             placeholder="Enter your full name"
                             value="<?php echo htmlspecialchars($name); ?>"
+                            maxlength="100"
                             required
                         >
 
@@ -392,6 +394,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             name="email"
                             placeholder="Enter your email address"
                             value="<?php echo htmlspecialchars($email); ?>"
+                            maxlength="150"
                             required
                         >
 
@@ -419,6 +422,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             id="password"
                             name="password"
                             placeholder="Create a password"
+                            minlength="8"
+                            maxlength="255"
+                            autocomplete="new-password"
                             required
                         >
 
@@ -446,6 +452,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             id="confirm_password"
                             name="confirm_password"
                             placeholder="Confirm your password"
+                            minlength="8"
+                            maxlength="255"
+                            autocomplete="new-password"
                             required
                         >
 
@@ -512,7 +521,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span class="register-input-icon">☎</span>
                         <input type="text" id="phone" name="phone"
                                placeholder="Enter hospital phone"
-                               value="<?php echo htmlspecialchars($phone); ?>">
+                               value="<?php echo htmlspecialchars($phone); ?>"
+                               maxlength="30"
+                               pattern="[0-9+() .-]{7,30}"
+                               inputmode="tel">
                     </div>
                 </div>
 
@@ -522,7 +534,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span class="register-input-icon">⌂</span>
                         <input type="text" id="city" name="city"
                                placeholder="Enter hospital city"
-                               value="<?php echo htmlspecialchars($city); ?>">
+                               value="<?php echo htmlspecialchars($city); ?>"
+                               maxlength="100">
                     </div>
                 </div>
 
@@ -531,7 +544,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="register-input-wrapper register-textarea-wrapper">
                         <span class="register-input-icon">⌖</span>
                         <textarea id="address" name="address" rows="2"
-                                  placeholder="Enter hospital address"><?php echo htmlspecialchars($address); ?></textarea>
+                                  placeholder="Enter hospital address"
+                                  maxlength="500"><?php echo htmlspecialchars($address); ?></textarea>
                     </div>
                 </div>
 
@@ -541,7 +555,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <span class="register-input-icon">●</span>
                         <input type="text" id="location" name="location"
                                placeholder="Enter area or location"
-                               value="<?php echo htmlspecialchars($location); ?>">
+                               value="<?php echo htmlspecialchars($location); ?>"
+                               maxlength="255">
                     </div>
                 </div>
 

@@ -54,7 +54,7 @@ $messages = $conn->query(
                                 <form method="POST">
                                     <?php echo csrf_field(); ?>
                                     <input type="hidden" name="id" value="<?php echo (int)$message["id"]; ?>">
-                                    <select name="status">
+                                    <select name="status" required>
                                         <?php foreach (["New", "In Progress", "Resolved", "Spam"] as $status): ?>
                                             <option value="<?php echo e($status); ?>" <?php echo $status === $message["status"] ? "selected" : ""; ?>><?php echo e($status); ?></option>
                                         <?php endforeach; ?>

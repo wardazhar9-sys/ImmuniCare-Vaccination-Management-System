@@ -54,6 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Forgot Password | ImmuniCare</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/form-validation.js" defer></script>
 </head>
 <body class="login-body">
 <main class="auth-simple-page">
@@ -69,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <form method="POST" class="auth-simple-form">
         <?php echo csrf_field(); ?>
         <label for="email">Email address</label>
-        <input id="email" type="email" name="email" required>
+        <input id="email" type="email" name="email" maxlength="150" autocomplete="email" required>
         <button type="submit">Send recovery link</button>
     </form>
     <a class="auth-back-link" href="login.php">Back to login</a>

@@ -171,3 +171,4 @@ if (isset($conn, $_SESSION["user_id"])) {
     });
 })();
 </script>
+<script src="../assets/js/form-validation.js" defer></script>

@@ -102,11 +102,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     <?php echo csrf_field(); ?>
                     <div class="form-group">
                         <label for="name">Name</label>
-                        <input id="name" name="name" value="<?php echo e($admin_details["name"]); ?>" required>
+                        <input id="name" name="name" value="<?php echo e($admin_details["name"]); ?>" maxlength="100" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input id="email" type="email" name="email" value="<?php echo e($admin_details["email"]); ?>" required>
+                        <input id="email" type="email" name="email" value="<?php echo e($admin_details["email"]); ?>" maxlength="150" required>
                     </div>
                     <button class="dashboard-primary-btn" type="submit">Save Changes</button>
                 </form>

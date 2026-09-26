@@ -4,13 +4,25 @@ require_once "../includes/app.php";
 
 $admin = require_role($conn, "admin");
 $admin_id = (int)$admin["id"];
+$inventory_flash = flash_get();
+$message = $inventory_flash["message"];
+$message_type = $inventory_flash["type"];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     verify_csrf();
     $hospital_id = post_int("hospital_id");
     $vaccine_id = post_int("vaccine_id");
-    $quantity = max(0, post_int("quantity"));
-    $reorder = max(0, post_int("reorder_level"));
+    $quantity = post_int("quantity");
+    $reorder = post_int("reorder_level");
+
+    if (
+        $hospital_id <= 0 || $vaccine_id <= 0 ||
+        $quantity < 0 || $quantity > 1000000 ||
+        $reorder < 0 || $reorder > 1000000
+    ) {
+        flash_set("Enter valid inventory values.", "error");
+        redirect_to("inventory.php");
+    }
 
     $stmt = $conn->prepare(
         "INSERT INTO hospital_inventory (hospital_id, vaccine_id, quantity, reorder_level)
@@ -43,13 +55,14 @@ $inventory = $conn->query(
 <main class="dashboard-main">
 <?php include "../includes/portal_header.php"; ?><section class="dashboard-content">
     <h1>Hospital vaccine inventory</h1>
+    <?php if ($message !== ""): ?><div class="appointment-message <?php echo e($message_type); ?>"><?php echo e($message); ?></div><?php endif; ?>
     <div class="dashboard-card">
         <form method="POST" class="admin-tool-form">
             <?php echo csrf_field(); ?>
             <div class="tool-field"><label for="hospital_id">Hospital</label><select id="hospital_id" name="hospital_id" required><?php while ($row = $hospitals->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["hospital_name"]); ?></option><?php endwhile; ?></select></div>
             <div class="tool-field"><label for="vaccine_id">Vaccine</label><select id="vaccine_id" name="vaccine_id" required><?php while ($row = $vaccines->fetch_assoc()): ?><option value="<?php echo (int)$row["id"]; ?>"><?php echo e($row["vaccine_name"]); ?></option><?php endwhile; ?></select></div>
-            <div class="tool-field"><label for="quantity">Quantity</label><input id="quantity" type="number" min="0" name="quantity" required></div>
-            <div class="tool-field"><label for="reorder_level">Reorder level</label><input id="reorder_level" type="number" min="0" name="reorder_level" required></div>
+            <div class="tool-field"><label for="quantity">Quantity</label><input id="quantity" type="number" min="0" max="1000000" name="quantity" required></div>
+            <div class="tool-field"><label for="reorder_level">Reorder level</label><input id="reorder_level" type="number" min="0" max="1000000" name="reorder_level" required></div>
             <button type="submit">Save inventory</button>
         </form>
     </div>

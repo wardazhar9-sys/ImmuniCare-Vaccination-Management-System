@@ -316,6 +316,7 @@ $appointments_result = $appointments_stmt->get_result();
                                                 type="date"
                                                 name="scheduled_date"
                                                 value="<?php echo $appointment["booking_date"]; ?>"
+                                                min="<?php echo date('Y-m-d'); ?>"
                                                 required
                                             >
 

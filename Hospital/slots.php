@@ -24,9 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     verify_csrf();
     $date = post_string("slot_date", 10);
     $time = post_string("slot_time", 5);
-    $capacity = max(1, post_int("capacity"));
+    $capacity = post_int("capacity");
 
-    if (!valid_date($date) || !valid_time($time) || strtotime("$date $time") <= time()) {
+    if (
+        !valid_date($date) || !valid_time($time) ||
+        $capacity < 1 || $capacity > 1000 ||
+        strtotime("$date $time") <= time()
+    ) {
         $message = "Choose a valid future slot.";
     } else {
         $stmt = $conn->prepare(
@@ -64,7 +68,7 @@ $slots = $stmt->get_result();
         <?php echo csrf_field(); ?>
         <div class="tool-field"><label for="slot_date">Date</label><input id="slot_date" type="date" name="slot_date" min="<?php echo date("Y-m-d"); ?>" required></div>
         <div class="tool-field"><label for="slot_time">Time</label><input id="slot_time" type="time" name="slot_time" required></div>
-        <div class="tool-field"><label for="capacity">Capacity</label><input id="capacity" type="number" name="capacity" min="1" value="1" required></div>
+        <div class="tool-field"><label for="capacity">Capacity</label><input id="capacity" type="number" name="capacity" min="1" max="1000" value="1" required></div>
         <button type="submit">Save slot</button>
     </form></div>
     <div class="users-card"><table class="users-table"><thead><tr><th>Date</th><th>Time</th><th>Capacity</th><th>Booked</th><th>Status</th></tr></thead><tbody>

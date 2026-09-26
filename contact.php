@@ -210,6 +210,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 id="name"
                                 name="name"
                                 placeholder="Enter your name"
+                                maxlength="100"
                                 required
                             >
 
@@ -227,6 +228,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 id="email"
                                 name="email"
                                 placeholder="Enter your email"
+                                maxlength="150"
                                 required
                             >
 
@@ -246,6 +248,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             id="subject"
                             name="subject"
                             placeholder="What would you like to ask?"
+                                maxlength="200"
                             required
                         >
 
@@ -263,6 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             name="message"
                             rows="6"
                             placeholder="Write your message here..."
+                                maxlength="2000"
                             required
                         ></textarea>
 

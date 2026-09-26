@@ -26,7 +26,11 @@ if (
         $vaccine_name === ""
         || $description === ""
         || $age_group === ""
+        || mb_strlen($vaccine_name) > 150
+        || mb_strlen($description) > 1000
+        || mb_strlen($age_group) > 100
         || $dose_number <= 0
+        || $dose_number > 100
         || !in_array($availability, ["Available", "Unavailable"])
     ) {
 
@@ -161,7 +165,11 @@ if (
         || $vaccine_name === ""
         || $description === ""
         || $age_group === ""
+        || mb_strlen($vaccine_name) > 150
+        || mb_strlen($description) > 1000
+        || mb_strlen($age_group) > 100
         || $dose_number <= 0
+        || $dose_number > 100
         || !in_array($availability, ["Available", "Unavailable"])
     ) {
 
@@ -1047,6 +1055,7 @@ $result = mysqli_stmt_get_result($stmt);
                         id="add_vaccine_name"
                         name="vaccine_name"
                         placeholder="e.g. BCG"
+                        maxlength="150"
                         required
                     >
 
@@ -1064,6 +1073,7 @@ $result = mysqli_stmt_get_result($stmt);
                         name="description"
                         rows="4"
                         placeholder="Enter vaccine description..."
+                        maxlength="1000"
                         required
                     ></textarea>
 
@@ -1081,6 +1091,7 @@ $result = mysqli_stmt_get_result($stmt);
                         id="add_vaccine_age_group"
                         name="age_group"
                         placeholder="e.g. At Birth"
+                        maxlength="100"
                         required
                     >
 
@@ -1101,6 +1112,7 @@ $result = mysqli_stmt_get_result($stmt);
                             id="add_vaccine_dose"
                             name="dose_number"
                             min="1"
+                            max="100"
                             value="1"
                             required
                         >
@@ -1379,6 +1391,7 @@ $result = mysqli_stmt_get_result($stmt);
                         type="text"
                         id="edit_vaccine_name"
                         name="vaccine_name"
+                        maxlength="150"
                         required
                     >
 
@@ -1396,6 +1409,7 @@ $result = mysqli_stmt_get_result($stmt);
                         name="description"
                         rows="4"
                         placeholder="Enter vaccine description..."
+                        maxlength="1000"
                         required
                     ></textarea>
 
@@ -1412,6 +1426,7 @@ $result = mysqli_stmt_get_result($stmt);
                         type="text"
                         id="edit_vaccine_age_group"
                         name="age_group"
+                        maxlength="100"
                         required
                     >
 
@@ -1432,6 +1447,7 @@ $result = mysqli_stmt_get_result($stmt);
                             id="edit_vaccine_dose"
                             name="dose_number"
                             min="1"
+                            max="100"
                             required
                         >
 

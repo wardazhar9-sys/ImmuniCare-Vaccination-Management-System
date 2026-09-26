@@ -107,6 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Login - ImmuniCare</title>
 
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/form-validation.js" defer></script>
 
 </head>
 
@@ -198,6 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             name="email"
                             placeholder="Enter your email address"
                             value="<?php echo htmlspecialchars($email ?? ''); ?>"
+                            maxlength="150"
                             required
                         >
 
@@ -225,6 +227,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             id="password"
                             name="password"
                             placeholder="Enter your password"
+                            maxlength="255"
                             required
                         >
 
