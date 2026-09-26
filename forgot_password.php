@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="login-body">
-<main class="login-form-container">
+<main class="auth-simple-page">
     <h1>Reset your password</h1>
     <p><?php echo e($message); ?></p>
     <?php if ($recovery_link !== ""): ?>
@@ -66,13 +66,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <a href="<?php echo e($recovery_link); ?>"><?php echo e($recovery_link); ?></a>
         </div>
     <?php endif; ?>
-    <form method="POST">
+    <form method="POST" class="auth-simple-form">
         <?php echo csrf_field(); ?>
         <label for="email">Email address</label>
         <input id="email" type="email" name="email" required>
         <button type="submit">Send recovery link</button>
     </form>
-    <a href="login.php">Back to login</a>
+    <a class="auth-back-link" href="login.php">Back to login</a>
 </main>
 </body>
 </html>

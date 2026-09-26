@@ -76,11 +76,11 @@ if (strlen($token) !== 64) {
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="login-body">
-<main class="password-reset-page">
+<main class="auth-simple-page">
     <h1>Reset password</h1>
     <p><?php echo e($message); ?></p>
     <?php if (!$success && strlen($token) === 64): ?>
-        <form method="POST" class="password-reset-form">
+        <form method="POST" class="auth-simple-form">
             <?php echo csrf_field(); ?>
             <input type="hidden" name="token" value="<?php echo e($token); ?>">
             <label for="password">New password</label>
@@ -90,7 +90,7 @@ if (strlen($token) !== 64) {
             <button type="submit">Save password</button>
         </form>
     <?php endif; ?>
-    <a href="login.php">Back to login</a>
+    <a class="auth-back-link" href="login.php">Back to login</a>
 </main>
 </body>
 </html>

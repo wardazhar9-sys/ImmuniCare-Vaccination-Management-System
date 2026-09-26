@@ -12706,64 +12706,103 @@ body {
     color: #1d4ed8;
 }
 
-.password-reset-page {
-    width: min(100% - 32px, 520px);
-    margin: 64px auto;
-    padding: 32px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
+.auth-simple-page {
+    width: min(calc(100% - 32px), 520px);
+    margin: clamp(24px, 8vh, 72px) auto;
+    padding: clamp(24px, 5vw, 36px);
     box-sizing: border-box;
+    background: #fff;
+    border: 1px solid #dbe7f3;
+    border-radius: 16px;
+    box-shadow: 0 18px 45px rgba(15, 35, 77, 0.08);
 }
 
-.password-reset-page h1 {
+.auth-simple-page h1 {
     margin: 0 0 8px;
     color: #0f234d;
+    font-size: clamp(28px, 5vw, 36px);
+    line-height: 1.15;
 }
 
-.password-reset-page p {
-    margin: 0 0 20px;
+.auth-simple-page > p {
+    margin: 0 0 24px;
     color: #64748b;
     line-height: 1.6;
 }
 
-.password-reset-form {
+.auth-simple-form {
     display: grid;
-    gap: 10px;
+    gap: 11px;
 }
 
-.password-reset-form label {
+.auth-simple-form label {
+    margin-top: 2px;
     color: #334155;
     font-size: 13px;
     font-weight: 700;
 }
 
-.password-reset-form input {
+.auth-simple-form input {
     width: 100%;
     min-height: 46px;
     padding: 0 13px;
-    border: 1px solid #cbd5e1;
-    border-radius: 9px;
     box-sizing: border-box;
+    border: 1px solid #bdd8f2;
+    border-radius: 9px;
+    background: #fafdff;
+    color: #0f234d;
+    font: inherit;
 }
 
-.password-reset-form button {
+.auth-simple-form input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.auth-simple-form button {
     width: fit-content;
+    min-height: 44px;
     margin-top: 8px;
-    min-height: 42px;
-    padding: 0 18px;
+    padding: 0 20px;
     border: 0;
     border-radius: 9px;
     background: #2563eb;
     color: #fff;
+    font: inherit;
     font-weight: 700;
     cursor: pointer;
 }
 
+.auth-simple-form button:hover {
+    background: #1554c4;
+}
+
+.auth-back-link {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 22px;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.auth-back-link:hover {
+    color: #1554c4;
+    text-decoration: underline;
+}
+
 @media (max-width: 600px) {
-    .password-reset-page {
-        margin: 24px auto;
-        padding: 22px;
+    .auth-simple-page {
+        width: min(calc(100% - 24px), 520px);
+        margin: 18px auto;
+        padding: 24px 20px;
+    }
+
+    .auth-simple-form button {
+        width: 100%;
     }
 }
 

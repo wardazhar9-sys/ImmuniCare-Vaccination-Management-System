@@ -49,10 +49,10 @@ if (strlen($token) === 64) {
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="login-body">
-<main class="login-form-container">
+<main class="auth-simple-page">
     <h1>Email verification</h1>
     <p><?php echo e($message); ?></p>
-    <a href="login.php">Go to login</a>
+    <a class="auth-back-link" href="login.php">Go to login</a>
 </main>
 </body>
 </html>
