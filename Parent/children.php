@@ -854,6 +854,7 @@ body.modal-open {
 <div class="parent-dashboard">
 <?php include "sidebar.php"; ?>
 <main class="dashboard-main">
+<?php include "../includes/portal_header.php"; ?>
 <div class="children-container">
 
 

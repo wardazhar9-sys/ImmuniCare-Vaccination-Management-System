@@ -14,6 +14,8 @@ if not defined DB_USER set "DB_USER=root"
 set "DB_PASSWORD=%DB_PASSWORD%"
 set "DB_NAME=%DB_NAME%"
 if not defined DB_NAME set "DB_NAME=vaccination_management_system"
+set "APP_ENV=%APP_ENV%"
+if not defined APP_ENV set "APP_ENV=local"
 
 if not exist "%PHP_BIN%" (
     echo XAMPP PHP was not found at %PHP_BIN%.

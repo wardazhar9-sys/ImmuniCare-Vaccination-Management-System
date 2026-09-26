@@ -506,27 +506,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 </div>
 
-                <div class="register-field">
+                <div class="register-field hospital-only">
                     <label for="phone">Hospital Phone</label>
-                    <input type="text" id="phone" name="phone"
-                           value="<?php echo htmlspecialchars($phone); ?>">
+                    <div class="register-input-wrapper">
+                        <span class="register-input-icon">☎</span>
+                        <input type="text" id="phone" name="phone"
+                               placeholder="Enter hospital phone"
+                               value="<?php echo htmlspecialchars($phone); ?>">
+                    </div>
                 </div>
 
-                <div class="register-field">
+                <div class="register-field hospital-only">
                     <label for="city">Hospital City</label>
-                    <input type="text" id="city" name="city"
-                           value="<?php echo htmlspecialchars($city); ?>">
+                    <div class="register-input-wrapper">
+                        <span class="register-input-icon">⌂</span>
+                        <input type="text" id="city" name="city"
+                               placeholder="Enter hospital city"
+                               value="<?php echo htmlspecialchars($city); ?>">
+                    </div>
                 </div>
 
-                <div class="register-field">
+                <div class="register-field hospital-only">
                     <label for="address">Hospital Address</label>
-                    <textarea id="address" name="address" rows="2"><?php echo htmlspecialchars($address); ?></textarea>
+                    <div class="register-input-wrapper register-textarea-wrapper">
+                        <span class="register-input-icon">⌖</span>
+                        <textarea id="address" name="address" rows="2"
+                                  placeholder="Enter hospital address"><?php echo htmlspecialchars($address); ?></textarea>
+                    </div>
                 </div>
 
-                <div class="register-field">
+                <div class="register-field hospital-only">
                     <label for="location">Hospital Location</label>
-                    <input type="text" id="location" name="location"
-                           value="<?php echo htmlspecialchars($location); ?>">
+                    <div class="register-input-wrapper">
+                        <span class="register-input-icon">●</span>
+                        <input type="text" id="location" name="location"
+                               placeholder="Enter area or location"
+                               value="<?php echo htmlspecialchars($location); ?>">
+                    </div>
                 </div>
 
 
@@ -619,6 +635,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 </main>
+
+<script>
+const accountType = document.getElementById("role");
+const hospitalFields = document.querySelectorAll(".hospital-only");
+
+function updateHospitalFields() {
+    const show = accountType.value === "hospital";
+    hospitalFields.forEach((field) => {
+        field.hidden = !show;
+        field.querySelectorAll("input, textarea").forEach((input) => {
+            input.required = show;
+        });
+    });
+}
+
+accountType.addEventListener("change", updateHospitalFields);
+updateHospitalFields();
+</script>
 
 
 </body>

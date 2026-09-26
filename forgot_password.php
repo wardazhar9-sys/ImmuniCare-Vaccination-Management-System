@@ -3,6 +3,7 @@
 require_once "includes/app.php";
 
 $message = "If the account exists, recovery instructions have been queued.";
+$recovery_link = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     verify_csrf();
@@ -38,6 +39,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $outbox->bind_param("isss", $user["id"], $channel, $event, $payload);
             $outbox->execute();
             $outbox->close();
+
+            if ((getenv("APP_ENV") ?: "production") !== "production") {
+                $recovery_link = "reset_password.php?token=" . $plain;
+            }
         }
     }
 }
@@ -54,6 +59,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <main class="login-form-container">
     <h1>Reset your password</h1>
     <p><?php echo e($message); ?></p>
+    <?php if ($recovery_link !== ""): ?>
+        <div class="local-recovery-preview">
+            <strong>Local recovery preview</strong>
+            <p>Email delivery is disabled locally. Open this link to complete the reset:</p>
+            <a href="<?php echo e($recovery_link); ?>"><?php echo e($recovery_link); ?></a>
+        </div>
+    <?php endif; ?>
     <form method="POST">
         <?php echo csrf_field(); ?>
         <label for="email">Email address</label>

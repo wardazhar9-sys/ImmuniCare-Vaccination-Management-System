@@ -241,7 +241,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
 
                     <div style="overflow-x:auto;">
 
-                        <table style="width:100%; border-collapse:collapse;">
+                        <table class="hospital-vaccinations-table">
 
                             <thead>
 
@@ -365,7 +365,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
                                     </td>
 
 
-                                    <td style="padding:15px;">
+                                    <td class="hospital-vaccination-action-cell">
 
                                         <?php if ($has_record): ?>
 
@@ -375,7 +375,7 @@ $vaccinations_data = $vaccinations_stmt->get_result();
 
                                         <?php else: ?>
 
-                                            <form method="POST">
+                                            <form method="POST" class="hospital-vaccination-action-form">
                                                 <?php echo csrf_field(); ?>
 
                                                 <input

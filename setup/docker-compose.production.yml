@@ -27,6 +27,7 @@ services:
       DB_USER: ${DB_USER:-immunicare}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
       APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
+      APP_ENV: production
     depends_on:
       db:
         condition: service_healthy

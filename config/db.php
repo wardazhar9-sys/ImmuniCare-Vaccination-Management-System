@@ -2,6 +2,15 @@
 
 mysqli_report(MYSQLI_REPORT_OFF);
 
+$env_file = __DIR__ . '/../setup/.env';
+if (is_file($env_file)) {
+    foreach (parse_ini_file($env_file, false, INI_SCANNER_RAW) ?: [] as $key => $value) {
+        if (getenv($key) === false) {
+            putenv($key . '=' . $value);
+        }
+    }
+}
+
 $host = getenv('DB_HOST') ?: 'localhost';
 $username = getenv('DB_USER') ?: 'root';
 $password = getenv('DB_PASSWORD') ?: '';

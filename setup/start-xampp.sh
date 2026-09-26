@@ -11,6 +11,8 @@ DB_NAME="${DB_NAME:-vaccination_management_system}"
 DB_USER="${DB_USER:-root}"
 DB_PASSWORD="${DB_PASSWORD:-}"
 APP_PORT="${APP_PORT:-8080}"
+APP_ENV="${APP_ENV:-local}"
+export APP_ENV
 
 if [ -z "$PHP_BIN" ]; then
     if [ -x "${XAMPP_ROOT}/bin/php" ]; then
@@ -52,6 +54,7 @@ DB_NAME="$DB_NAME" \
 DB_USER="$DB_USER" \
 DB_PASSWORD="$DB_PASSWORD" \
 APP_TIMEZONE="${APP_TIMEZONE:-Asia/Karachi}" \
+APP_ENV="$APP_ENV" \
 "$PHP_BIN" setup/scripts/deploy.php
 
 echo "ImmuniCare is available at http://127.0.0.1:${APP_PORT}"
