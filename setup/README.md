@@ -31,6 +31,7 @@ setup\start-xampp.bat
 ```
 
 It uses the standard `C:\xampp` installation path. Set `XAMPP_ROOT` if XAMPP is installed elsewhere.
+The Windows launcher starts XAMPP MySQL and uses XAMPP PHP on port `8080`, so it does not require Apache port 80. This avoids conflicts with IIS, another Apache instance, Skype, or other services.
 
 1. Create the database:
 

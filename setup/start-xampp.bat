@@ -21,11 +21,11 @@ if not exist "%PHP_BIN%" (
     exit /b 1
 )
 
-if exist "%XAMPP_ROOT%\xampp_start.exe" (
-    start "" "%XAMPP_ROOT%\xampp_start.exe"
+if exist "%XAMPP_ROOT%\mysql_start.bat" (
+    start "" "%XAMPP_ROOT%\mysql_start.bat"
 ) else (
-    if exist "%XAMPP_ROOT%\mysql_start.bat" start "" "%XAMPP_ROOT%\mysql_start.bat"
-    if exist "%XAMPP_ROOT%\apache_start.bat" start "" "%XAMPP_ROOT%\apache_start.bat"
+    echo XAMPP MySQL launcher was not found at %XAMPP_ROOT%\mysql_start.bat.
+    exit /b 1
 )
 
 for /L %%N in (1,1,30) do (
@@ -48,5 +48,8 @@ set "DB_PASSWORD=%DB_PASSWORD%"
 "%PHP_BIN%" setup\scripts\deploy.php
 if errorlevel 1 exit /b 1
 
-start "" "http://localhost/Child%20Vaccination%20Management%20System/index.php"
+set "APP_PORT=%APP_PORT%"
+if not defined APP_PORT set APP_PORT=8080
+start "" "%PHP_BIN%" -S "127.0.0.1:%APP_PORT%" -t "%APP_ROOT%"
+start "" "http://127.0.0.1:%APP_PORT%/index.php"
 echo ImmuniCare is ready.
