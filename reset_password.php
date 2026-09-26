@@ -18,7 +18,7 @@ if (strlen($token) !== 64) {
     } else {
         $hash = hash("sha256", $token);
         $stmt = $conn->prepare(
-            "SELECT id FROM password_reset_tokens
+            "SELECT user_id FROM password_reset_tokens
              WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW()
              LIMIT 1"
         );
@@ -38,7 +38,7 @@ if (strlen($token) !== 64) {
             $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
             $updated = false;
             if ($stmt) {
-                $stmt->bind_param("si", $password_hash, $reset["id"]);
+                $stmt->bind_param("si", $password_hash, $reset["user_id"]);
                 $updated = $stmt->execute();
                 $stmt->close();
             }
