@@ -33,6 +33,8 @@ $messages = $conn->query(
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="dashboard-body">
+<div class="dashboard-layout">
+<?php include "sidebar.php"; ?>
 <main class="dashboard-main">
     <section class="dashboard-content">
         <div class="section-heading"><h1>Contact Messages</h1><p>Manage support requests.</p></div>
@@ -67,5 +69,6 @@ $messages = $conn->query(
         </div>
     </section>
 </main>
+</div>
 </body>
 </html>

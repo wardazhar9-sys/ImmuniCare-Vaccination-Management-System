@@ -61,6 +61,8 @@ $doses = $conn->query(
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="dashboard-body">
+<div class="dashboard-layout">
+<?php include "sidebar.php"; ?>
 <main class="dashboard-main">
     <section class="dashboard-content">
         <h1>Vaccine dose definitions</h1>
@@ -104,5 +106,6 @@ $doses = $conn->query(
         </div>
     </section>
 </main>
+</div>
 </body>
 </html>

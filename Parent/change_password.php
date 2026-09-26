@@ -53,7 +53,7 @@ if (isset($_POST["change_password"])) {
 <body>
 
     <div class="parent-dashboard">
-
+        <?php include "sidebar.php"; ?>
         <main class="dashboard-main">
 
             <header class="dashboard-header">

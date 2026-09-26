@@ -54,6 +54,8 @@ $slots = $stmt->get_result();
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Slots | ImmuniCare</title><link rel="stylesheet" href="../assets/css/style.css"></head>
 <body class="dashboard-body">
+<div class="parent-dashboard">
+<?php include "sidebar.php"; ?>
 <main class="dashboard-main"><section class="dashboard-content">
     <h1>Appointment slots</h1>
     <?php if ($message !== ""): ?><div class="appointment-message"><?php echo e($message); ?></div><?php endif; ?>
@@ -68,5 +70,6 @@ $slots = $stmt->get_result();
         <?php while ($slot = $slots->fetch_assoc()): ?><tr><td><?php echo e($slot["slot_date"]); ?></td><td><?php echo e($slot["slot_time"]); ?></td><td><?php echo (int)$slot["capacity"]; ?></td><td><?php echo (int)$slot["booked_count"]; ?></td><td><?php echo e($slot["status"]); ?></td></tr><?php endwhile; ?>
     </tbody></table></div>
 </section></main>
+</div>
 </body>
 </html>

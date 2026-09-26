@@ -46,6 +46,8 @@ if (($_GET["format"] ?? "") === "csv") {
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body class="dashboard-body">
+<div class="dashboard-layout">
+<?php include "sidebar.php"; ?>
 <main class="dashboard-main">
     <section class="dashboard-content">
         <div class="section-heading">
@@ -55,5 +57,6 @@ if (($_GET["format"] ?? "") === "csv") {
         <a class="dashboard-primary-btn" href="reports.php?format=csv">Download bookings CSV</a>
     </section>
 </main>
+</div>
 </body>
 </html>

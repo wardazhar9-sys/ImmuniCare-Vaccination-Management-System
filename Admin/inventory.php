@@ -38,6 +38,8 @@ $inventory = $conn->query(
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Inventory | ImmuniCare</title><link rel="stylesheet" href="../assets/css/style.css"></head>
 <body class="dashboard-body">
+<div class="dashboard-layout">
+<?php include "sidebar.php"; ?>
 <main class="dashboard-main"><section class="dashboard-content">
     <h1>Hospital vaccine inventory</h1>
     <div class="dashboard-card">
@@ -56,5 +58,6 @@ $inventory = $conn->query(
         <?php while ($row = $inventory->fetch_assoc()): ?><tr><td><?php echo e($row["hospital_name"]); ?></td><td><?php echo e($row["vaccine_name"]); ?></td><td><?php echo (int)$row["quantity"]; ?></td><td><?php echo (int)$row["reorder_level"]; ?></td></tr><?php endwhile; ?>
     </tbody></table></div>
 </section></main>
+</div>
 </body>
 </html>

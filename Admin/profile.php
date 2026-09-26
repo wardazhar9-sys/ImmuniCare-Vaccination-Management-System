@@ -44,23 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 <body class="dashboard-body">
 <div class="dashboard-layout">
-    <aside class="dashboard-sidebar">
-        <div class="sidebar-brand">
-            <img src="../assets/images/immunicare-logo-sidebar.svg" alt="ImmuniCare" class="sidebar-brand-image">
-        </div>
-        <nav class="sidebar-nav">
-            <a href="dashboard.php" class="sidebar-link"><span class="sidebar-icon">⌂</span><span>Dashboard</span></a>
-            <a href="users.php" class="sidebar-link"><span class="sidebar-icon">♧</span><span>Users</span></a>
-            <a href="children.php" class="sidebar-link"><span class="sidebar-icon">♙</span><span>Children</span></a>
-            <a href="hospitals.php" class="sidebar-link"><span class="sidebar-icon">♜</span><span>Hospitals</span></a>
-            <a href="vaccines.php" class="sidebar-link"><span class="sidebar-icon">✚</span><span>Vaccines</span></a>
-            <a href="bookings.php" class="sidebar-link"><span class="sidebar-icon">▤</span><span>Bookings</span></a>
-            <a href="schedules.php" class="sidebar-link"><span class="sidebar-icon">▣</span><span>Schedules</span></a>
-            <a href="vaccination_records.php" class="sidebar-link"><span class="sidebar-icon">✓</span><span>Records</span></a>
-            <a href="profile.php" class="sidebar-link active"><span class="sidebar-icon">◯</span><span>Profile</span></a>
-        </nav>
-        <div class="sidebar-bottom"><a href="logout.php" class="logout-link">Logout</a></div>
-    </aside>
+<?php include "sidebar.php"; ?>
     <main class="dashboard-main">
         <header class="dashboard-header">
             <div class="header-page-title"><h1>Admin Profile</h1><p>Manage administrator account details.</p></div>
