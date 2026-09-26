@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../../config/db.php';
 
 $conn->query(
     "CREATE TABLE IF NOT EXISTS schema_migrations (

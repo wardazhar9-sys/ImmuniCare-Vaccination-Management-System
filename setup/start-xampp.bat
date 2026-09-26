@@ -21,6 +21,12 @@ if not exist "%PHP_BIN%" (
     exit /b 1
 )
 
+set "DB_READY="
+"%PHP_BIN%" -r "mysqli_report(MYSQLI_REPORT_OFF); $c=@new mysqli(getenv('DB_HOST'),getenv('DB_USER'),getenv('DB_PASSWORD'),'',(int)getenv('DB_PORT')); exit($c->connect_errno ? 1 : 0);" >nul 2>&1
+if not errorlevel 1 set "DB_READY=1"
+
+if defined DB_READY goto db_ready
+
 if exist "%XAMPP_ROOT%\mysql_start.bat" (
     start "" "%XAMPP_ROOT%\mysql_start.bat"
 ) else (
