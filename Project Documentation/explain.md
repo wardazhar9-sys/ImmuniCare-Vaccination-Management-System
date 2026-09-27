@@ -196,6 +196,10 @@ setup/database/migrations/001_harden_schema.sql
 setup/database/migrations/002_domain_expansion.sql
 setup/database/migrations/003_reporting_preferences.sql
 setup/database/migrations/004_booking_slots.sql
+setup/database/migrations/005_demo_scenario_data.sql
+setup/database/migrations/006_karachi_sample_names.sql
+setup/database/migrations/007_legacy_karachi_names.sql
+setup/database/migrations/008_remove_unused_support_tables.sql
 ```
 
 The migrations add:
@@ -206,13 +210,11 @@ The migrations add:
 - booking timestamps and slot relation;
 - booking-to-schedule-to-record relationships;
 - vaccine doses;
-- hospital hours/holidays/slots/inventory tables;
+- hospital slots/inventory tables;
 - notification links and read timestamps;
 - email verification and password reset tokens;
-- authentication events;
 - API tokens;
 - notification outbox;
-- user preferences;
 - report exports;
 - audit logs;
 - contact messages.
@@ -1317,7 +1319,7 @@ The local system still provides in-app notifications, local outbox records, and 
 - clinical source/version;
 - Active or Inactive status.
 
-Dose definitions are managed inside **Admin Portal → Vaccines → Dose schedule management**. The old Vaccine Doses URL redirects to this section so existing bookmarks continue to work.
+Dose definitions are available in **Admin Portal → Vaccine Doses** at `Admin/vaccine_doses.php`. They can also be managed inside **Admin Portal → Vaccines → Dose schedule management**.
 
 The Parent Portal does not show every dose as a free choice. For each child, the system:
 
@@ -1377,7 +1379,7 @@ CSV exports are generated from prepared queries and recorded in the admin audit 
 
 ## 19. Karachi sample scenario data
 
-The migrations `005_demo_scenario_data.sql` and `006_karachi_sample_names.sql` create linked local sample data and use realistic Karachi names. The sample records are isolated from unrelated valid data.
+The migrations `005_demo_scenario_data.sql`, `006_karachi_sample_names.sql` and `007_legacy_karachi_names.sql` create linked local sample data and use realistic Karachi names. The sample records are isolated from unrelated valid data.
 
 All sample accounts use:
 

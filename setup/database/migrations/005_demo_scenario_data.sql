@@ -102,24 +102,6 @@ FROM audit_logs a
 JOIN users u ON u.id = a.actor_user_id
 WHERE u.email LIKE 'demo.%@immunicare.local';
 
-DELETE h
-FROM hospital_hours h
-JOIN hospitals hospital ON hospital.id = h.hospital_id
-JOIN users u ON u.id = hospital.user_id
-WHERE u.email IN (
-    'demo.hospital.alpha@immunicare.local',
-    'demo.hospital.beta@immunicare.local'
-);
-
-DELETE h
-FROM hospital_holidays h
-JOIN hospitals hospital ON hospital.id = h.hospital_id
-JOIN users u ON u.id = hospital.user_id
-WHERE u.email IN (
-    'demo.hospital.alpha@immunicare.local',
-    'demo.hospital.beta@immunicare.local'
-);
-
 DELETE s
 FROM hospital_slots s
 JOIN hospitals hospital ON hospital.id = s.hospital_id

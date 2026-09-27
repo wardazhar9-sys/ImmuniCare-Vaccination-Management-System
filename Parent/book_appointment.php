@@ -225,6 +225,9 @@ $slots_result = $conn->query(
                             <?php endforeach; ?>
 
                         </select>
+                        <small class="form-help">
+                            Only the next eligible dose is shown. A later dose appears after the previous dose is recorded as Vaccinated and its age and minimum-interval rules are satisfied.
+                        </small>
                         <input
                             type="hidden"
                             name="vaccine_dose_id"

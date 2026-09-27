@@ -85,30 +85,6 @@ ALTER TABLE notifications
     ADD COLUMN IF NOT EXISTS record_id INT NULL AFTER schedule_id,
     ADD COLUMN IF NOT EXISTS read_at DATETIME NULL AFTER is_read;
 
-CREATE TABLE IF NOT EXISTS hospital_hours (
-    id INT NOT NULL AUTO_INCREMENT,
-    hospital_id INT NOT NULL,
-    weekday TINYINT NOT NULL,
-    opens_at TIME NOT NULL,
-    closes_at TIME NOT NULL,
-    is_closed TINYINT(1) NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_hospital_weekday (hospital_id, weekday),
-    CONSTRAINT fk_hours_hospital
-        FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS hospital_holidays (
-    id INT NOT NULL AUTO_INCREMENT,
-    hospital_id INT NOT NULL,
-    holiday_date DATE NOT NULL,
-    reason VARCHAR(255) NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_hospital_holiday (hospital_id, holiday_date),
-    CONSTRAINT fk_holiday_hospital
-        FOREIGN KEY (hospital_id) REFERENCES hospitals(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 CREATE TABLE IF NOT EXISTS hospital_slots (
     id INT NOT NULL AUTO_INCREMENT,
     hospital_id INT NOT NULL,
@@ -183,20 +159,6 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
     KEY idx_reset_token_user (user_id, expires_at),
     CONSTRAINT fk_reset_token_user
         FOREIGN KEY (user_id) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS auth_events (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    user_id INT NULL,
-    event_type VARCHAR(80) NOT NULL,
-    ip_address VARCHAR(45) NULL,
-    user_agent VARCHAR(500) NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY idx_auth_event_user (user_id, created_at),
-    CONSTRAINT fk_auth_event_user
-        FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS api_tokens (

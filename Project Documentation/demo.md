@@ -362,7 +362,7 @@ Options:
 
 ### Dose schedule management
 
-This is now inside the Vaccines page. The old Vaccine Doses link redirects here.
+Dose definitions are available from the **Vaccine Doses** Admin menu and from the dose schedule management section inside the **Vaccines** page.
 
 Dose fields:
 

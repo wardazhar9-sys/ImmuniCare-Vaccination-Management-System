@@ -14,6 +14,7 @@ $admin_page = basename($_SERVER['PHP_SELF']);
             'children.php' => ['♙', 'Children'],
             'hospitals.php' => ['♜', 'Hospitals'],
             'vaccines.php' => ['✚', 'Vaccines'],
+            'vaccine_doses.php' => ['◈', 'Vaccine Doses'],
             'inventory.php' => ['▣', 'Inventory'],
             'reports.php' => ['▤', 'Reports'],
             'contact_messages.php' => ['✉', 'Messages'],
