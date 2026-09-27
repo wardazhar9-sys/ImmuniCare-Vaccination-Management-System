@@ -17,7 +17,7 @@ Purpose: stores users, children, vaccines, appointments, vaccination records, in
 | Table | Purpose |
 |---|---|
 | `vaccines` | Stores the general vaccine catalogue, descriptions, age groups, dose count and availability. |
-| `vaccine_doses` | Stores each dose in a vaccine series, including recommended age, minimum interval and clinical source. |
+| `vaccine_doses` | Stores each dose in a vaccine series, including numeric order, display label such as Booster, age, interval and clinical source. |
 
 ## Appointment and vaccination workflow tables
 
@@ -81,4 +81,4 @@ users
 
 ## Migration note
 
-Migrations `001`–`004` create and strengthen the application schema. Migrations `005`–`007` mainly create or rename local sample data; they do not create the main database tables. Migration `008_remove_unused_support_tables.sql` removes the unused hospital-hours, hospital-holidays, user-preferences and authentication-events tables from existing databases.
+Migrations `001`–`004` create and strengthen the application schema. Migrations `005`–`007` mainly create or rename local sample data; they do not create the main database tables. Migration `008_remove_unused_support_tables.sql` removes unused support tables, and migration `009_vaccine_dose_labels.sql` adds editable dose display labels for entries such as Booster.

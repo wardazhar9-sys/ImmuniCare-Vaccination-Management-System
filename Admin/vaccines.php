@@ -34,9 +34,12 @@ if (
     $dose_id = post_int("dose_id");
     $vaccine_id = post_int("dose_vaccine_id");
     $dose_number = post_int("dose_number");
+    $dose_label = post_string("dose_label", 100);
     $recommended_age = post_int("recommended_age_days");
     $minimum_interval = post_int("minimum_interval_days");
+    $catch_up_rule = post_string("catch_up_rule", 500);
     $source = post_string("clinical_source", 255);
+    $source_version = post_string("source_version", 50);
     $dose_status = post_string("dose_status", 20);
 
     if (
@@ -55,40 +58,55 @@ if (
         $stmt = $conn->prepare(
             "UPDATE vaccine_doses
              SET vaccine_id = ?, dose_number = ?,
+                 dose_label = NULLIF(?, ''),
                  recommended_age_days = NULLIF(?, 0),
                  minimum_interval_days = NULLIF(?, 0),
-                 clinical_source = ?, status = ?
+                 catch_up_rule = NULLIF(?, ''),
+                 clinical_source = NULLIF(?, ''),
+                 source_version = NULLIF(?, ''),
+                 status = ?
              WHERE id = ?"
         );
         $stmt->bind_param(
-            "iiiissi",
+            "iisiissssi",
             $vaccine_id,
             $dose_number,
+            $dose_label,
             $recommended_age,
             $minimum_interval,
+            $catch_up_rule,
             $source,
+            $source_version,
             $dose_status,
             $dose_id
         );
     } else {
         $stmt = $conn->prepare(
             "INSERT INTO vaccine_doses
-             (vaccine_id, dose_number, recommended_age_days,
-              minimum_interval_days, clinical_source, status)
-             VALUES (?, ?, NULLIF(?, 0), NULLIF(?, 0), ?, ?)
+             (vaccine_id, dose_number, dose_label, recommended_age_days,
+              minimum_interval_days, catch_up_rule, clinical_source,
+              source_version, status)
+             VALUES (?, ?, NULLIF(?, ''), NULLIF(?, 0), NULLIF(?, 0),
+                     NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), ?)
              ON DUPLICATE KEY UPDATE
+                 dose_label = VALUES(dose_label),
                  recommended_age_days = VALUES(recommended_age_days),
                  minimum_interval_days = VALUES(minimum_interval_days),
+                 catch_up_rule = VALUES(catch_up_rule),
                  clinical_source = VALUES(clinical_source),
+                 source_version = VALUES(source_version),
                  status = VALUES(status)"
         );
         $stmt->bind_param(
-            "iiiiss",
+            "iisiissss",
             $vaccine_id,
             $dose_number,
+            $dose_label,
             $recommended_age,
             $minimum_interval,
+            $catch_up_rule,
             $source,
+            $source_version,
             $dose_status
         );
     }
@@ -592,8 +610,8 @@ $result = mysqli_stmt_get_result($stmt);
 
 $dose_definitions = $conn->query(
     "SELECT d.id, d.vaccine_id, v.vaccine_name, d.dose_number,
-            d.recommended_age_days, d.minimum_interval_days,
-            d.clinical_source, d.status
+            d.dose_label, d.recommended_age_days, d.minimum_interval_days,
+            d.catch_up_rule, d.clinical_source, d.source_version, d.status
      FROM vaccine_doses d
      JOIN vaccines v ON v.id = d.vaccine_id
      ORDER BY v.vaccine_name, d.dose_number"
@@ -1146,6 +1164,10 @@ $dose_definitions = $conn->query(
                     <input id="dose_number" type="number" name="dose_number" min="1" max="100" required>
                 </div>
                 <div class="tool-field">
+                    <label for="dose_label">Display label</label>
+                    <input id="dose_label" name="dose_label" maxlength="100" placeholder="Dose 1 or Booster">
+                </div>
+                <div class="tool-field">
                     <label for="recommended_age_days">Recommended age (days)</label>
                     <input id="recommended_age_days" type="number" name="recommended_age_days" min="0" max="36500">
                 </div>
@@ -1154,8 +1176,16 @@ $dose_definitions = $conn->query(
                     <input id="minimum_interval_days" type="number" name="minimum_interval_days" min="0" max="36500">
                 </div>
                 <div class="tool-field">
+                    <label for="catch_up_rule">Catch-up rule</label>
+                    <input id="catch_up_rule" name="catch_up_rule" maxlength="500">
+                </div>
+                <div class="tool-field">
                     <label for="clinical_source">Clinical source/version</label>
                     <input id="clinical_source" name="clinical_source" maxlength="255">
+                </div>
+                <div class="tool-field">
+                    <label for="source_version">Source version</label>
+                    <input id="source_version" name="source_version" maxlength="50">
                 </div>
                 <div class="tool-field">
                     <label for="dose_status">Status</label>
@@ -1173,9 +1203,12 @@ $dose_definitions = $conn->query(
                         <tr>
                             <th>Vaccine</th>
                             <th>Dose</th>
+                            <th>Label</th>
                             <th>Recommended age</th>
                             <th>Minimum interval</th>
+                            <th>Catch-up</th>
                             <th>Source</th>
+                            <th>Source version</th>
                             <th>Status</th>
                                 <th>Actions</th>
                         </tr>
@@ -1185,9 +1218,12 @@ $dose_definitions = $conn->query(
                             <tr>
                                 <td><?php echo e($dose["vaccine_name"]); ?></td>
                                 <td><?php echo (int)$dose["dose_number"]; ?></td>
+                                <td><?php echo e($dose["dose_label"] ?: "Dose " . (int)$dose["dose_number"]); ?></td>
                                 <td><?php echo $dose["recommended_age_days"] === null ? "Any age" : (int)$dose["recommended_age_days"] . " days"; ?></td>
                                 <td><?php echo $dose["minimum_interval_days"] === null ? "None" : (int)$dose["minimum_interval_days"] . " days"; ?></td>
+                                <td><?php echo e($dose["catch_up_rule"]); ?></td>
                                 <td><?php echo e($dose["clinical_source"]); ?></td>
+                                <td><?php echo e($dose["source_version"]); ?></td>
                                 <td><?php echo e($dose["status"]); ?></td>
                                 <td>
                                     <button
@@ -1197,9 +1233,12 @@ $dose_definitions = $conn->query(
                                             <?php echo (int)$dose["id"]; ?>,
                                             <?php echo (int)$dose["vaccine_id"]; ?>,
                                             <?php echo (int)$dose["dose_number"]; ?>,
+                                            <?php echo htmlspecialchars(json_encode($dose["dose_label"] ?? ""), ENT_QUOTES, "UTF-8"); ?>,
                                             <?php echo $dose["recommended_age_days"] === null ? 0 : (int)$dose["recommended_age_days"]; ?>,
                                             <?php echo $dose["minimum_interval_days"] === null ? 0 : (int)$dose["minimum_interval_days"]; ?>,
+                                            <?php echo htmlspecialchars(json_encode($dose["catch_up_rule"] ?? ""), ENT_QUOTES, "UTF-8"); ?>,
                                             <?php echo htmlspecialchars(json_encode($dose["clinical_source"]), ENT_QUOTES, "UTF-8"); ?>,
+                                            <?php echo htmlspecialchars(json_encode($dose["source_version"] ?? ""), ENT_QUOTES, "UTF-8"); ?>,
                                             <?php echo htmlspecialchars(json_encode($dose["status"]), ENT_QUOTES, "UTF-8"); ?>
                                         )"
                                     >
@@ -2127,17 +2166,23 @@ function editDoseDefinition(
     id,
     vaccineId,
     doseNumber,
+    doseLabel,
     recommendedAge,
     minimumInterval,
+    catchUpRule,
     source,
+    sourceVersion,
     status
 ) {
     document.querySelector("[name='dose_id']").value = id;
     document.getElementById("dose_vaccine_id").value = vaccineId;
     document.getElementById("dose_number").value = doseNumber;
+    document.getElementById("dose_label").value = doseLabel || "";
     document.getElementById("recommended_age_days").value = recommendedAge || "";
     document.getElementById("minimum_interval_days").value = minimumInterval || "";
+    document.getElementById("catch_up_rule").value = catchUpRule || "";
     document.getElementById("clinical_source").value = source || "";
+    document.getElementById("source_version").value = sourceVersion || "";
     document.getElementById("dose_status").value = status;
     document.getElementById("dose-management").scrollIntoView({ behavior: "smooth" });
 }

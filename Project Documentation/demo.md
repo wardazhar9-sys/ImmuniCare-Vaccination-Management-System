@@ -368,6 +368,7 @@ Dose fields:
 
 - vaccine;
 - dose number;
+- display label, such as Dose 1 or Booster;
 - recommended age in days;
 - minimum interval in days;
 - clinical source/version;

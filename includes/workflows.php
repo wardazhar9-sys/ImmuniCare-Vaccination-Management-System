@@ -29,7 +29,7 @@ function next_eligible_vaccine_dose(
 
     $nextDoseNumber = (int)$progress["completed_dose"] + 1;
     $stmt = $conn->prepare(
-        "SELECT d.id, d.vaccine_id, d.dose_number,
+        "SELECT d.id, d.vaccine_id, d.dose_number, d.dose_label,
                 d.recommended_age_days, d.minimum_interval_days,
                 d.clinical_source, v.vaccine_name
          FROM vaccine_doses d

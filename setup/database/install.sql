@@ -598,6 +598,7 @@ CREATE TABLE IF NOT EXISTS vaccine_doses (
     id INT NOT NULL AUTO_INCREMENT,
     vaccine_id INT NOT NULL,
     dose_number INT NOT NULL,
+    dose_label VARCHAR(100) NULL,
     recommended_age_days INT NULL,
     minimum_interval_days INT NULL,
     catch_up_rule VARCHAR(500) NULL,

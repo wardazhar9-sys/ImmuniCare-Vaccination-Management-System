@@ -218,7 +218,9 @@ $slots_result = $conn->query(
                                     <?php echo ($vaccine["id"] == $selected_vaccine_id) ? "selected" : ""; ?>>
 
                                     <?php echo htmlspecialchars($vaccine["vaccine_name"]); ?>
-                                    - Dose <?php echo (int)$vaccine["dose"]["dose_number"]; ?>
+                                    - <?php echo htmlspecialchars(
+                                        $vaccine["dose"]["dose_label"] ?: "Dose " . (int)$vaccine["dose"]["dose_number"]
+                                    ); ?>
 
                                 </option>
 

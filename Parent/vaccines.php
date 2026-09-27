@@ -206,7 +206,9 @@ $vaccines_result = $conn->query(
                      href="book_appointment.php?vaccine_id=<?php echo (int)$vaccine["id"]; ?>&child_id=<?php echo (int)$eligible["child"]["id"]; ?>&vaccine_dose_id=<?php echo (int)$eligible["dose"]["id"]; ?>"
                      class="dashboard-primary-btn vaccine-book-btn"
                  >
-                     Book Dose <?php echo (int)$eligible["dose"]["dose_number"]; ?>
+                    Book <?php echo e(
+                        $eligible["dose"]["dose_label"] ?: "Dose " . (int)$eligible["dose"]["dose_number"]
+                    ); ?>
                      for <?php echo e($eligible["child"]["child_name"]); ?>
                  </a>
              <?php endforeach; ?>

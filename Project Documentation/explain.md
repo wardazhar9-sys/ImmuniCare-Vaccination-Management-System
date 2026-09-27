@@ -200,6 +200,7 @@ setup/database/migrations/005_demo_scenario_data.sql
 setup/database/migrations/006_karachi_sample_names.sql
 setup/database/migrations/007_legacy_karachi_names.sql
 setup/database/migrations/008_remove_unused_support_tables.sql
+setup/database/migrations/009_vaccine_dose_labels.sql
 ```
 
 The migrations add:
@@ -941,6 +942,7 @@ Admin/vaccine_doses.php
 Admin can define:
 
 - dose number;
+- display label, such as Dose 1, Dose 2 or Booster;
 - recommended age in days;
 - minimum interval;
 - clinical source/version;
