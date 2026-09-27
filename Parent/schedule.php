@@ -5,12 +5,14 @@ $name = $user["name"];
 $parent_id = (int)$user["id"];
 
 $stmt = $conn->prepare(
-    "SELECT c.child_name, v.vaccine_name, vs.dose_number,
+    "SELECT c.child_name, v.vaccine_name,
+            COALESCE(d.dose_number, vs.dose_number) AS dose_number,
             vs.scheduled_date, vs.scheduled_time, vs.status
      FROM vaccination_schedules vs
      JOIN bookings b ON b.id = vs.booking_id
      JOIN children c ON c.id = vs.child_id
      JOIN vaccines v ON v.id = vs.vaccine_id
+     LEFT JOIN vaccine_doses d ON d.id = vs.vaccine_dose_id
      WHERE c.parent_id = ? ORDER BY vs.scheduled_date, vs.scheduled_time"
 );
 $stmt->bind_param("i", $parent_id);

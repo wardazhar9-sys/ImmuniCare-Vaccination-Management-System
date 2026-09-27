@@ -40,11 +40,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         mysqli_begin_transaction($conn);
         $stmt = $conn->prepare(
-            "SELECT b.parent_id, b.child_id, b.vaccine_id, v.dose_number, c.child_name,
+            "SELECT b.parent_id, b.child_id, b.vaccine_id, b.vaccine_dose_id,
+                    COALESCE(d.dose_number, v.dose_number) AS dose_number,
+                    c.child_name,
                     v.vaccine_name
              FROM bookings b
              JOIN children c ON c.id = b.child_id
              JOIN vaccines v ON v.id = b.vaccine_id
+             LEFT JOIN vaccine_doses d ON d.id = b.vaccine_dose_id
              WHERE b.id = ? AND b.hospital_id = ? AND b.status = 'Approved'
              LIMIT 1"
         );
@@ -74,13 +77,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $status = "Scheduled";
                 $stmt = $conn->prepare(
                     "INSERT INTO vaccination_schedules
-                     (booking_id, child_id, vaccine_id, hospital_id, dose_number,
-                      scheduled_date, scheduled_time, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                     (booking_id, child_id, vaccine_id, vaccine_dose_id,
+                      hospital_id, dose_number, scheduled_date, scheduled_time, status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 );
                 $stmt->bind_param(
-                    "iiiiisss", $booking_id, $booking["child_id"],
-                    $booking["vaccine_id"], $hospital_id, $booking["dose_number"],
+                    "iiiiiisss", $booking_id, $booking["child_id"],
+                    $booking["vaccine_id"], $booking["vaccine_dose_id"],
+                    $hospital_id, $booking["dose_number"],
                     $scheduled_date, $scheduled_time, $status
                 );
                 $saved = $stmt->execute();

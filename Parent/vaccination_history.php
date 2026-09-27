@@ -5,11 +5,13 @@ $name = $user["name"];
 $parent_id = (int)$user["id"];
 
 $stmt = $conn->prepare(
-    "SELECT vr.id, c.child_name, v.vaccine_name, v.dose_number,
+    "SELECT vr.id, c.child_name, v.vaccine_name,
+            COALESCE(d.dose_number, vr.dose_number) AS dose_number,
             h.hospital_name, h.city, vr.vaccination_date, vr.status, vr.remarks
      FROM vaccination_records vr
      JOIN children c ON c.id = vr.child_id
      JOIN vaccines v ON v.id = vr.vaccine_id
+     LEFT JOIN vaccine_doses d ON d.id = vr.vaccine_dose_id
      JOIN hospitals h ON h.id = vr.hospital_id
      WHERE c.parent_id = ? ORDER BY vr.vaccination_date DESC"
 );

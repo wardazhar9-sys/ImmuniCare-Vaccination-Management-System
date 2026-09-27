@@ -1304,3 +1304,113 @@ The following integrations are intentionally deferred:
 - PWA offline synchronization.
 
 The local system still provides in-app notifications, local outbox records, and local password-recovery previews so the application workflow can be tested without those providers.
+
+---
+
+## 16. Vaccine doses and next-dose behavior
+
+`vaccines` stores the general vaccine information. `vaccine_doses` stores the dose schedule for that vaccine:
+
+- dose number;
+- recommended age in days;
+- minimum interval after the previous dose;
+- clinical source/version;
+- Active or Inactive status.
+
+Dose definitions are managed inside **Admin Portal → Vaccines → Dose schedule management**. The old Vaccine Doses URL redirects to this section so existing bookmarks continue to work.
+
+The Parent Portal does not show every dose as a free choice. For each child, the system:
+
+1. checks completed `Vaccinated` records;
+2. identifies the next dose number;
+3. checks the child’s age against `recommended_age_days`;
+4. checks the interval since the last vaccination;
+5. shows the dose only when it is currently eligible.
+
+The selected dose is stored as `vaccine_dose_id` on the booking, then copied to the hospital schedule and vaccination record. This prevents a parent from changing a dose ID manually or booking Dose 3 before Dose 2.
+
+Existing legacy rows are backfilled from `vaccines.dose_number`. That column remains only for compatibility; new workflow decisions use `vaccine_doses`.
+
+---
+
+## 17. Inventory workflow
+
+Inventory is maintained per hospital and vaccine in `hospital_inventory`.
+
+Admin usage:
+
+1. Open **Admin Portal → Inventory**.
+2. Select the hospital and vaccine.
+3. Enter the current quantity and reorder level.
+4. Save the adjustment.
+
+The current balance is also recorded in `inventory_transactions`. The ledger records opening balances, admin adjustments, and vaccination consumption.
+
+When a hospital records a vaccination as **Vaccinated**:
+
+- the inventory row is locked inside the same database transaction;
+- the quantity must be at least 1;
+- exactly one unit is deducted;
+- a transaction ledger row is written;
+- the vaccination, booking, schedule, stock change, and notification either all commit or all roll back.
+
+When the status is **Not Vaccinated**, stock is not deducted. Duplicate vaccination records are rejected before inventory can be changed. A zero-stock vaccine cannot be recorded until Admin replenishes it.
+
+The reorder level is a warning threshold. Inventory rows at or below that threshold display **Reorder required** and are included in inventory reports.
+
+---
+
+## 18. Reports
+
+Open **Admin Portal → Reports** and select a report type:
+
+- **Bookings** — parent, child, hospital, vaccine, dose, date, time, and booking status.
+- **Vaccination records** — completed/missed result, dose, hospital, date, and remarks.
+- **Inventory balances** — current quantity, reorder level, and stock warning.
+- **Inventory transactions** — every opening balance, adjustment, and vaccination deduction.
+
+Optional filters include date range, hospital, vaccine, dose number, and status where applicable. Click **Apply filters** to view results on the page, or **Download ... CSV** to export the same filtered result.
+
+CSV exports are generated from prepared queries and recorded in the admin audit log. An empty report is a valid result and displays a clear no-records message rather than failing silently.
+
+---
+
+## 19. Demo scenario data
+
+The migration `005_demo_scenario_data.sql` creates a repeatable local demo dataset. It rebuilds only accounts and operational rows belonging to the `demo.*@immunicare.local` users, while preserving unrelated valid data.
+
+All demo accounts use:
+
+```text
+Password: TestPassword123!
+```
+
+Accounts:
+
+- `demo.admin@immunicare.local`
+- `demo.parent1@immunicare.local`
+- `demo.parent2@immunicare.local`
+- `demo.hospital.alpha@immunicare.local`
+- `demo.hospital.beta@immunicare.local`
+
+The demo includes:
+
+- a fully vaccinated child with three completed Polio doses;
+- a child with a previous dose and a scheduled next dose;
+- a child with a pending first appointment;
+- a child with a missed vaccination;
+- a rejected appointment;
+- multiple parents and hospitals;
+- open, completed, cancelled, approved, rejected, and pending bookings;
+- hospital slots with different capacities;
+- hospital vaccine inventory, reorder levels, opening balances, and consumption ledger entries;
+- unread/read notifications and pending outbox data;
+- audit and report-export records.
+
+Run the normal launcher after applying or updating the code:
+
+```bat
+setup\start-xampp.bat
+```
+
+The migration runner applies the demo migration once. Re-running it refreshes only the demo-owned scenario records.

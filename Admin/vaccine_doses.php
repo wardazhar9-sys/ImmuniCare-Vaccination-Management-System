@@ -4,6 +4,7 @@ require_once "../includes/app.php";
 
 $admin = require_role($conn, "admin");
 $admin_id = (int)$admin["id"];
+redirect_to("vaccines.php#dose-management");
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

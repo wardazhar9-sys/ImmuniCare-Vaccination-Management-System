@@ -66,6 +66,16 @@ $total_vaccinations = (int)$stmt->get_result()->fetch_assoc()["total"];
 $stmt->close();
 
 $stmt = $conn->prepare(
+    "SELECT COUNT(*) AS total
+     FROM hospital_inventory
+     WHERE hospital_id = ? AND quantity <= reorder_level"
+);
+$stmt->bind_param("i", $hospital_id);
+$stmt->execute();
+$low_stock_items = (int)$stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
+
+$stmt = $conn->prepare(
     "SELECT b.id, c.child_name, v.vaccine_name, v.dose_number,
             b.booking_date, b.booking_time, b.status
      FROM bookings b JOIN children c ON c.id = b.child_id
@@ -159,7 +169,6 @@ $recent_result = $stmt->get_result();
 
 
                 </div>
-
 
             </div>
 
@@ -326,6 +335,16 @@ $recent_result = $stmt->get_result();
                     </div>
 
 
+                </div>
+
+                <!-- Inventory -->
+                <div class="dashboard-stat-card">
+                    <div class="stat-icon stat-icon-orange">▣</div>
+                    <div class="stat-information">
+                        <span class="stat-label">Low Stock Items</span>
+                        <strong class="stat-number"><?php echo $low_stock_items; ?></strong>
+                        <span class="stat-description">At or below reorder level</span>
+                    </div>
                 </div>
 
 

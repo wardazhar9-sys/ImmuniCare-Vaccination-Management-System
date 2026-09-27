@@ -4,6 +4,108 @@ require_once "../includes/app.php";
 $admin = require_role($conn, "admin");
 $admin_id = (int)$admin["id"];
 
+function ensure_vaccine_doses(mysqli $conn, int $vaccineId, int $doseCount): bool
+{
+    $stmt = $conn->prepare(
+        "INSERT INTO vaccine_doses (vaccine_id, dose_number, status)
+         VALUES (?, ?, 'Active')
+         ON DUPLICATE KEY UPDATE status = 'Active'"
+    );
+    if (!$stmt) {
+        return false;
+    }
+
+    for ($doseNumber = 1; $doseNumber <= $doseCount; $doseNumber++) {
+        $stmt->bind_param("ii", $vaccineId, $doseNumber);
+        if (!$stmt->execute()) {
+            $stmt->close();
+            return false;
+        }
+    }
+    $stmt->close();
+    return true;
+}
+
+if (
+    $_SERVER["REQUEST_METHOD"] === "POST"
+    && isset($_POST["save_vaccine_dose"])
+) {
+    verify_csrf();
+    $dose_id = post_int("dose_id");
+    $vaccine_id = post_int("dose_vaccine_id");
+    $dose_number = post_int("dose_number");
+    $recommended_age = post_int("recommended_age_days");
+    $minimum_interval = post_int("minimum_interval_days");
+    $source = post_string("clinical_source", 255);
+    $dose_status = post_string("dose_status", 20);
+
+    if (
+        $vaccine_id <= 0 || $dose_number <= 0 || $dose_number > 100 ||
+        $recommended_age < 0 || $recommended_age > 36500 ||
+        $minimum_interval < 0 || $minimum_interval > 36500 ||
+        !in_array($dose_status, ["Active", "Inactive"], true)
+    ) {
+        $_SESSION["vaccine_message"] = "Enter valid dose information.";
+        $_SESSION["vaccine_message_type"] = "error";
+        header("Location: vaccines.php#dose-management");
+        exit();
+    }
+
+    if ($dose_id > 0) {
+        $stmt = $conn->prepare(
+            "UPDATE vaccine_doses
+             SET vaccine_id = ?, dose_number = ?,
+                 recommended_age_days = NULLIF(?, 0),
+                 minimum_interval_days = NULLIF(?, 0),
+                 clinical_source = ?, status = ?
+             WHERE id = ?"
+        );
+        $stmt->bind_param(
+            "iiiissi",
+            $vaccine_id,
+            $dose_number,
+            $recommended_age,
+            $minimum_interval,
+            $source,
+            $dose_status,
+            $dose_id
+        );
+    } else {
+        $stmt = $conn->prepare(
+            "INSERT INTO vaccine_doses
+             (vaccine_id, dose_number, recommended_age_days,
+              minimum_interval_days, clinical_source, status)
+             VALUES (?, ?, NULLIF(?, 0), NULLIF(?, 0), ?, ?)
+             ON DUPLICATE KEY UPDATE
+                 recommended_age_days = VALUES(recommended_age_days),
+                 minimum_interval_days = VALUES(minimum_interval_days),
+                 clinical_source = VALUES(clinical_source),
+                 status = VALUES(status)"
+        );
+        $stmt->bind_param(
+            "iiiiss",
+            $vaccine_id,
+            $dose_number,
+            $recommended_age,
+            $minimum_interval,
+            $source,
+            $dose_status
+        );
+    }
+
+    $saved = $stmt->execute();
+    $stmt->close();
+    $_SESSION["vaccine_message"] = $saved
+        ? "Dose definition saved."
+        : "Unable to save dose definition.";
+    $_SESSION["vaccine_message_type"] = $saved ? "success" : "error";
+    if ($saved) {
+        audit($conn, $admin_id, "vaccine_dose.saved", "vaccine", $vaccine_id);
+    }
+    header("Location: vaccines.php#dose-management");
+    exit();
+}
+
 
 /* =========================================================
    ADD VACCINE
@@ -117,6 +219,15 @@ if (
 
 
     if (mysqli_stmt_execute($insert_stmt)) {
+        $new_vaccine_id = mysqli_stmt_insert_id($insert_stmt);
+        $dose_saved = ensure_vaccine_doses($conn, $new_vaccine_id, $dose_number);
+        if (!$dose_saved) {
+            $_SESSION["vaccine_message"] = "Vaccine was not added because its dose definition could not be saved.";
+            $_SESSION["vaccine_message_type"] = "error";
+            mysqli_stmt_close($insert_stmt);
+            header("Location: vaccines.php");
+            exit();
+        }
 
         $_SESSION["vaccine_message"] =
             "Vaccine added successfully.";
@@ -259,6 +370,14 @@ if (
 
 
     if (mysqli_stmt_execute($update_stmt)) {
+        $dose_saved = ensure_vaccine_doses($conn, $vaccine_id, $dose_number);
+        if (!$dose_saved) {
+            $_SESSION["vaccine_message"] = "Vaccine was not updated because its dose definition could not be saved.";
+            $_SESSION["vaccine_message_type"] = "error";
+            mysqli_stmt_close($update_stmt);
+            header("Location: vaccines.php");
+            exit();
+        }
 
         $_SESSION["vaccine_message"] =
             "Vaccine information updated successfully.";
@@ -470,6 +589,15 @@ if (!empty($params)) {
 mysqli_stmt_execute($stmt);
 
 $result = mysqli_stmt_get_result($stmt);
+
+$dose_definitions = $conn->query(
+    "SELECT d.id, d.vaccine_id, v.vaccine_name, d.dose_number,
+            d.recommended_age_days, d.minimum_interval_days,
+            d.clinical_source, d.status
+     FROM vaccine_doses d
+     JOIN vaccines v ON v.id = d.vaccine_id
+     ORDER BY v.vaccine_name, d.dose_number"
+);
 
 ?>
 
@@ -986,6 +1114,105 @@ $result = mysqli_stmt_get_result($stmt);
             </div>
 
 
+        <div class="users-card" id="dose-management">
+            <div class="users-card-header">
+                <div>
+                    <h3>Dose schedule management</h3>
+                    <p>Configure the next eligible dose, timing, and clinical source for each vaccine.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="admin-tool-form">
+                <?php echo csrf_field(); ?>
+                <input type="hidden" name="save_vaccine_dose" value="1">
+                <input type="hidden" name="dose_id" value="0">
+                <div class="tool-field">
+                    <label for="dose_vaccine_id">Vaccine</label>
+                    <select id="dose_vaccine_id" name="dose_vaccine_id" required>
+                        <?php
+                        $dose_vaccine_options = $conn->query(
+                            "SELECT id, vaccine_name FROM vaccines ORDER BY vaccine_name"
+                        );
+                        while ($dose_vaccine = $dose_vaccine_options->fetch_assoc()):
+                        ?>
+                            <option value="<?php echo (int)$dose_vaccine["id"]; ?>">
+                                <?php echo e($dose_vaccine["vaccine_name"]); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="tool-field">
+                    <label for="dose_number">Dose number</label>
+                    <input id="dose_number" type="number" name="dose_number" min="1" max="100" required>
+                </div>
+                <div class="tool-field">
+                    <label for="recommended_age_days">Recommended age (days)</label>
+                    <input id="recommended_age_days" type="number" name="recommended_age_days" min="0" max="36500">
+                </div>
+                <div class="tool-field">
+                    <label for="minimum_interval_days">Minimum interval (days)</label>
+                    <input id="minimum_interval_days" type="number" name="minimum_interval_days" min="0" max="36500">
+                </div>
+                <div class="tool-field">
+                    <label for="clinical_source">Clinical source/version</label>
+                    <input id="clinical_source" name="clinical_source" maxlength="255">
+                </div>
+                <div class="tool-field">
+                    <label for="dose_status">Status</label>
+                    <select id="dose_status" name="dose_status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit">Save dose definition</button>
+            </form>
+
+            <div class="users-table-wrapper">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>Vaccine</th>
+                            <th>Dose</th>
+                            <th>Recommended age</th>
+                            <th>Minimum interval</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                                <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($dose = $dose_definitions->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo e($dose["vaccine_name"]); ?></td>
+                                <td><?php echo (int)$dose["dose_number"]; ?></td>
+                                <td><?php echo $dose["recommended_age_days"] === null ? "Any age" : (int)$dose["recommended_age_days"] . " days"; ?></td>
+                                <td><?php echo $dose["minimum_interval_days"] === null ? "None" : (int)$dose["minimum_interval_days"] . " days"; ?></td>
+                                <td><?php echo e($dose["clinical_source"]); ?></td>
+                                <td><?php echo e($dose["status"]); ?></td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        class="user-action-edit"
+                                        onclick="editDoseDefinition(
+                                            <?php echo (int)$dose["id"]; ?>,
+                                            <?php echo (int)$dose["vaccine_id"]; ?>,
+                                            <?php echo (int)$dose["dose_number"]; ?>,
+                                            <?php echo $dose["recommended_age_days"] === null ? 0 : (int)$dose["recommended_age_days"]; ?>,
+                                            <?php echo $dose["minimum_interval_days"] === null ? 0 : (int)$dose["minimum_interval_days"]; ?>,
+                                            <?php echo htmlspecialchars(json_encode($dose["clinical_source"]), ENT_QUOTES, "UTF-8"); ?>,
+                                            <?php echo htmlspecialchars(json_encode($dose["status"]), ENT_QUOTES, "UTF-8"); ?>
+                                        )"
+                                    >
+                                        Edit
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         </div>
 
     </main>
@@ -1104,7 +1331,7 @@ $result = mysqli_stmt_get_result($stmt);
                     <div class="user-form-group">
 
                         <label for="add_vaccine_dose">
-                            Dose Number
+                            Number of Doses
                         </label>
 
                         <input
@@ -1116,6 +1343,7 @@ $result = mysqli_stmt_get_result($stmt);
                             value="1"
                             required
                         >
+                        <small class="form-help">Creates Dose 1 through this number. Add age and interval rules below.</small>
 
                     </div>
 
@@ -1439,7 +1667,7 @@ $result = mysqli_stmt_get_result($stmt);
                     <div class="user-form-group">
 
                         <label for="edit_vaccine_dose">
-                            Dose Number
+                            Number of Doses
                         </label>
 
                         <input
@@ -1450,6 +1678,7 @@ $result = mysqli_stmt_get_result($stmt);
                             max="100"
                             required
                         >
+                        <small class="form-help">Creates any missing dose definitions up to this number.</small>
 
                     </div>
 
@@ -1892,6 +2121,25 @@ function closeVaccineAvailabilityModal() {
         )
         .classList.remove("show");
 
+}
+
+function editDoseDefinition(
+    id,
+    vaccineId,
+    doseNumber,
+    recommendedAge,
+    minimumInterval,
+    source,
+    status
+) {
+    document.querySelector("[name='dose_id']").value = id;
+    document.getElementById("dose_vaccine_id").value = vaccineId;
+    document.getElementById("dose_number").value = doseNumber;
+    document.getElementById("recommended_age_days").value = recommendedAge || "";
+    document.getElementById("minimum_interval_days").value = minimumInterval || "";
+    document.getElementById("clinical_source").value = source || "";
+    document.getElementById("dose_status").value = status;
+    document.getElementById("dose-management").scrollIntoView({ behavior: "smooth" });
 }
 
 

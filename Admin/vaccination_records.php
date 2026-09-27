@@ -6,12 +6,15 @@ $admin = require_role($conn, "admin");
 $search = trim((string)($_GET["search"] ?? ""));
 
 $sql = "SELECT vr.id, c.child_name, u.name AS parent_name,
-               v.vaccine_name, vr.dose_number, h.hospital_name,
+               v.vaccine_name, vr.vaccine_dose_id,
+               COALESCE(d.dose_number, vr.dose_number) AS dose_number,
+               h.hospital_name,
                vr.vaccination_date, vr.status, vr.remarks
         FROM vaccination_records vr
         JOIN children c ON c.id = vr.child_id
         JOIN users u ON u.id = c.parent_id
         JOIN vaccines v ON v.id = vr.vaccine_id
+        LEFT JOIN vaccine_doses d ON d.id = vr.vaccine_dose_id
         JOIN hospitals h ON h.id = vr.hospital_id
         WHERE 1=1";
 

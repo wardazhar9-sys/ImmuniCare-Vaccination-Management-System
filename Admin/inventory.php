@@ -24,22 +24,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         redirect_to("inventory.php");
     }
 
+    mysqli_begin_transaction($conn);
+    $current_stmt = $conn->prepare(
+        "SELECT quantity
+         FROM hospital_inventory
+         WHERE hospital_id = ? AND vaccine_id = ?
+         FOR UPDATE"
+    );
+    $current_stmt->bind_param("ii", $hospital_id, $vaccine_id);
+    $current_stmt->execute();
+    $current = $current_stmt->get_result()->fetch_assoc();
+    $current_stmt->close();
+    $old_quantity = $current ? (int)$current["quantity"] : 0;
+
     $stmt = $conn->prepare(
         "INSERT INTO hospital_inventory (hospital_id, vaccine_id, quantity, reorder_level)
          VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), reorder_level = VALUES(reorder_level)"
     );
     $stmt->bind_param("iiii", $hospital_id, $vaccine_id, $quantity, $reorder);
-    $stmt->execute();
+    $saved = $stmt->execute();
     $stmt->close();
-    audit($conn, $admin_id, "inventory.updated", "hospital", $hospital_id, ["vaccine_id" => $vaccine_id]);
+
+    $delta = $quantity - $old_quantity;
+    if ($saved && $delta !== 0) {
+        $reason = "Admin adjustment";
+        $ledger = $conn->prepare(
+            "INSERT INTO inventory_transactions
+             (hospital_id, vaccine_id, actor_user_id, quantity_delta,
+              quantity_after, reason)
+             VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        $ledger->bind_param(
+            "iiiiis",
+            $hospital_id,
+            $vaccine_id,
+            $admin_id,
+            $delta,
+            $quantity,
+            $reason
+        );
+        $saved = $ledger->execute();
+        $ledger->close();
+    }
+
+    if ($saved) {
+        audit($conn, $admin_id, "inventory.updated", "hospital", $hospital_id, ["vaccine_id" => $vaccine_id]);
+        mysqli_commit($conn);
+    } else {
+        mysqli_rollback($conn);
+        flash_set("Unable to save inventory.", "error");
+    }
     redirect_to("inventory.php");
 }
 
 $hospitals = $conn->query("SELECT id, hospital_name FROM hospitals ORDER BY hospital_name");
 $vaccines = $conn->query("SELECT id, vaccine_name FROM vaccines ORDER BY vaccine_name");
 $inventory = $conn->query(
-    "SELECT i.quantity, i.reorder_level, h.hospital_name, v.vaccine_name
+    "SELECT i.quantity, i.reorder_level, h.hospital_name, v.vaccine_name,
+            CASE WHEN i.quantity <= i.reorder_level
+                 THEN 'Reorder required' ELSE 'Sufficient' END AS stock_status
      FROM hospital_inventory i
      JOIN hospitals h ON h.id = i.hospital_id
      JOIN vaccines v ON v.id = i.vaccine_id
@@ -66,8 +110,8 @@ $inventory = $conn->query(
             <button type="submit">Save inventory</button>
         </form>
     </div>
-    <div class="users-card"><table class="users-table"><thead><tr><th>Hospital</th><th>Vaccine</th><th>Quantity</th><th>Reorder level</th></tr></thead><tbody>
-        <?php while ($row = $inventory->fetch_assoc()): ?><tr><td><?php echo e($row["hospital_name"]); ?></td><td><?php echo e($row["vaccine_name"]); ?></td><td><?php echo (int)$row["quantity"]; ?></td><td><?php echo (int)$row["reorder_level"]; ?></td></tr><?php endwhile; ?>
+    <div class="users-card"><table class="users-table"><thead><tr><th>Hospital</th><th>Vaccine</th><th>Quantity</th><th>Reorder level</th><th>Status</th></tr></thead><tbody>
+        <?php while ($row = $inventory->fetch_assoc()): ?><tr><td><?php echo e($row["hospital_name"]); ?></td><td><?php echo e($row["vaccine_name"]); ?></td><td><?php echo (int)$row["quantity"]; ?></td><td><?php echo (int)$row["reorder_level"]; ?></td><td><?php echo e($row["stock_status"]); ?></td></tr><?php endwhile; ?>
     </tbody></table></div>
 </section></main>
 </div>

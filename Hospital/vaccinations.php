@@ -1,5 +1,6 @@
 <?php
 require_once "../includes/app.php";
+require_once "../includes/workflows.php";
 
 $user = require_role($conn, "hospital");
 $user_id = (int)$user["id"];
@@ -40,12 +41,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         mysqli_begin_transaction($conn);
         $stmt = $conn->prepare(
-            "SELECT b.parent_id, b.child_id, b.vaccine_id, v.dose_number,
+            "SELECT b.parent_id, b.child_id, b.vaccine_id,
+                    COALESCE(d.dose_number, v.dose_number) AS dose_number,
+                    COALESCE(vs.vaccine_dose_id, b.vaccine_dose_id) AS vaccine_dose_id,
                     c.child_name, v.vaccine_name, vs.id AS schedule_id
              FROM bookings b
              JOIN children c ON c.id = b.child_id
              JOIN vaccines v ON v.id = b.vaccine_id
              JOIN vaccination_schedules vs ON vs.booking_id = b.id
+             LEFT JOIN vaccine_doses d ON d.id = vs.vaccine_dose_id
              WHERE b.id = ? AND b.hospital_id = ? AND b.status = 'Approved'
                AND vs.status = 'Scheduled' LIMIT 1"
         );
@@ -72,16 +76,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             } else {
                 $record_stmt = $conn->prepare(
                     "INSERT INTO vaccination_records
-                     (booking_id, schedule_id, child_id, vaccine_id, hospital_id,
+                     (booking_id, schedule_id, child_id, vaccine_id, vaccine_dose_id, hospital_id,
                       dose_number, vaccination_date, status, remarks, recorded_by)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 );
                 $record_stmt->bind_param(
-                    "iiiiiisssi",
+                    "iiiiiissssi",
                     $booking_id,
                     $booking["schedule_id"],
                     $booking["child_id"],
                     $booking["vaccine_id"],
+                    $booking["vaccine_dose_id"],
                     $hospital_id,
                     $booking["dose_number"],
                     $vaccination_date,
@@ -113,6 +118,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
                 if ($saved) {
+                    if ($status === "Vaccinated") {
+                        $inventory_result = consume_inventory(
+                            $conn,
+                            $hospital_id,
+                            (int)$booking["vaccine_id"],
+                            $booking_id,
+                            $record_id,
+                            $user_id
+                        );
+                        $saved = $inventory_result["ok"];
+                        if (!$saved) {
+                            $error_message = $inventory_result["error"];
+                        }
+                    }
+                }
+
+                if ($saved) {
                     $saved = notify_user(
                         $conn,
                         (int)$booking["parent_id"],
@@ -129,7 +151,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     $success_message = "Vaccination record saved.";
                 } else {
                     mysqli_rollback($conn);
-                    $error_message = "Unable to save the vaccination record.";
+                    $error_message = $error_message !== ""
+                        ? $error_message
+                        : "Unable to save the vaccination record.";
                 }
             }
         }
@@ -137,14 +161,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $vaccinations_stmt = $conn->prepare(
-    "SELECT b.id AS booking_id, b.status AS booking_status,
-            c.child_name, v.vaccine_name, v.dose_number,
+            "SELECT b.id AS booking_id, b.status AS booking_status,
+            c.child_name, v.vaccine_name,
+            COALESCE(d.dose_number, v.dose_number) AS dose_number,
+            vs.vaccine_dose_id,
             vs.scheduled_date, vs.scheduled_time, vs.status AS schedule_status,
             vr.id AS record_id, vr.status AS record_status, vr.vaccination_date
      FROM bookings b
      JOIN children c ON c.id = b.child_id
      JOIN vaccines v ON v.id = b.vaccine_id
      JOIN vaccination_schedules vs ON vs.booking_id = b.id
+     LEFT JOIN vaccine_doses d ON d.id = vs.vaccine_dose_id
      LEFT JOIN vaccination_records vr ON vr.booking_id = b.id
      WHERE b.hospital_id = ? AND b.status IN ('Approved', 'Completed', 'Cancelled')
      ORDER BY vs.scheduled_date, vs.scheduled_time"

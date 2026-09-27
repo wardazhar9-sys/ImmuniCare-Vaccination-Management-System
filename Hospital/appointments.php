@@ -45,10 +45,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($updated) {
             $info_stmt = $conn->prepare(
-                "SELECT b.parent_id, b.slot_id, c.child_name, v.vaccine_name, v.dose_number
+                "SELECT b.parent_id, b.slot_id, b.vaccine_dose_id,
+                        c.child_name, v.vaccine_name,
+                        COALESCE(d.dose_number, v.dose_number) AS dose_number
                  FROM bookings b
                  JOIN children c ON c.id = b.child_id
                  JOIN vaccines v ON v.id = b.vaccine_id
+                 LEFT JOIN vaccine_doses d ON d.id = b.vaccine_dose_id
                  WHERE b.id = ? AND b.hospital_id = ?"
             );
             $info_stmt->bind_param("ii", $booking_id, $hospital_id);
@@ -96,12 +99,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 $appointments_stmt = $conn->prepare(
     "SELECT b.id, b.booking_date, b.booking_time, b.status,
+            b.vaccine_dose_id,
             u.name AS parent_name, c.child_name,
-            v.vaccine_name, v.dose_number
+            v.vaccine_name,
+            COALESCE(d.dose_number, v.dose_number) AS dose_number
      FROM bookings b
      JOIN users u ON u.id = b.parent_id
      JOIN children c ON c.id = b.child_id
      JOIN vaccines v ON v.id = b.vaccine_id
+     LEFT JOIN vaccine_doses d ON d.id = b.vaccine_dose_id
      WHERE b.hospital_id = ?
      ORDER BY b.booking_date ASC, b.booking_time ASC"
 );

@@ -312,7 +312,8 @@ $sql = "
         h.city,
 
         v.vaccine_name,
-        v.dose_number
+        b.vaccine_dose_id,
+        COALESCE(d.dose_number, v.dose_number) AS dose_number
 
     FROM bookings b
 
@@ -327,6 +328,9 @@ $sql = "
 
     INNER JOIN vaccines v
         ON b.vaccine_id = v.id
+
+    LEFT JOIN vaccine_doses d
+        ON d.id = b.vaccine_dose_id
 
     WHERE 1=1
 ";

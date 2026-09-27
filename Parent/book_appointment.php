@@ -5,6 +5,8 @@ require_once "../includes/workflows.php";
 $user = require_role($conn, "parent");
 $parent_id = (int)$user["id"];
 $selected_vaccine_id = (int)($_GET["vaccine_id"] ?? 0);
+$selected_child_id = (int)($_GET["child_id"] ?? $_POST["child_id"] ?? 0);
+$selected_vaccine_dose_id = (int)($_GET["vaccine_dose_id"] ?? $_POST["vaccine_dose_id"] ?? 0);
 $message = "";
 $message_type = "";
 
@@ -13,6 +15,7 @@ if (isset($_POST["book_appointment"])) {
     $child_id = post_int("child_id");
     $vaccine_id = post_int("vaccine_id");
     $slot_id = post_int("slot_id");
+    $vaccine_dose_id = post_int("vaccine_dose_id");
 
     $slot_stmt = $conn->prepare(
         "SELECT s.slot_date, s.slot_time, s.hospital_id
@@ -37,7 +40,8 @@ if (isset($_POST["book_appointment"])) {
             (int)$slot["hospital_id"],
             $slot["slot_date"],
             substr($slot["slot_time"], 0, 5),
-            $slot_id
+            $slot_id,
+            $vaccine_dose_id
         );
         $message = $result["ok"]
             ? "Appointment booked and sent for hospital approval."
@@ -55,9 +59,23 @@ $children_stmt->execute();
 $children_result = $children_stmt->get_result();
 
 $vaccines_result = $conn->query(
-    "SELECT id, vaccine_name, dose_number FROM vaccines
+    "SELECT id, vaccine_name FROM vaccines
      WHERE availability = 'Available' ORDER BY vaccine_name"
 );
+$eligible_vaccines = [];
+if ($selected_child_id > 0) {
+    while ($vaccine = $vaccines_result->fetch_assoc()) {
+        $dose = next_eligible_vaccine_dose(
+            $conn,
+            $selected_child_id,
+            (int)$vaccine["id"]
+        );
+        if ($dose) {
+            $vaccine["dose"] = $dose;
+            $eligible_vaccines[] = $vaccine;
+        }
+    }
+}
 
 $slots_result = $conn->query(
     "SELECT s.id, s.slot_date, s.slot_time, s.capacity, s.booked_count,
@@ -144,7 +162,12 @@ $slots_result = $conn->query(
                             Select Child
                         </label>
 
-                        <select name="child_id" id="child_id" required>
+                        <select
+                            name="child_id"
+                            id="child_id"
+                            required
+                            onchange="if (this.value) window.location='book_appointment.php?child_id=' + encodeURIComponent(this.value);"
+                        >
 
                             <option value="">
                                 Select Child
@@ -152,7 +175,10 @@ $slots_result = $conn->query(
 
                             <?php while ($child = mysqli_fetch_assoc($children_result)): ?>
 
-                                <option value="<?php echo $child["id"]; ?>">
+                                <option
+                                    value="<?php echo $child["id"]; ?>"
+                                    <?php echo ((int)$child["id"] === $selected_child_id) ? "selected" : ""; ?>
+                                >
 
                                     <?php echo htmlspecialchars($child["child_name"]); ?>
 
@@ -173,25 +199,38 @@ $slots_result = $conn->query(
                             Select Vaccine
                         </label>
 
-                        <select name="vaccine_id" id="vaccine_id" required>
+                        <select
+                            name="vaccine_id"
+                            id="vaccine_id"
+                            required
+                            <?php echo $selected_child_id > 0 ? "" : "disabled"; ?>
+                        >
 
                             <option value="">
-                                Select Vaccine
+                                <?php echo $selected_child_id > 0 ? "Select next eligible vaccine dose" : "Select a child first"; ?>
                             </option>
 
-                            <?php while ($vaccine = mysqli_fetch_assoc($vaccines_result)): ?>
+                            <?php foreach ($eligible_vaccines as $vaccine): ?>
 
-                                <option value="<?php echo $vaccine["id"]; ?>"
+                                <option
+                                    value="<?php echo (int)$vaccine["id"]; ?>"
+                                    data-dose-id="<?php echo (int)$vaccine["dose"]["id"]; ?>"
                                     <?php echo ($vaccine["id"] == $selected_vaccine_id) ? "selected" : ""; ?>>
 
                                     <?php echo htmlspecialchars($vaccine["vaccine_name"]); ?>
-                                    - Dose <?php echo htmlspecialchars($vaccine["dose_number"]); ?>
+                                    - Dose <?php echo (int)$vaccine["dose"]["dose_number"]; ?>
 
                                 </option>
 
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
 
                         </select>
+                        <input
+                            type="hidden"
+                            name="vaccine_dose_id"
+                            id="vaccine_dose_id"
+                            value="<?php echo $selected_vaccine_dose_id; ?>"
+                        >
 
                     </div>
 
@@ -247,6 +286,19 @@ $slots_result = $conn->query(
     </main>
 
 </div>
+
+<script>
+const vaccineSelect = document.getElementById("vaccine_id");
+const doseInput = document.getElementById("vaccine_dose_id");
+if (vaccineSelect && doseInput) {
+    const syncDose = () => {
+        const option = vaccineSelect.options[vaccineSelect.selectedIndex];
+        doseInput.value = option?.dataset.doseId || "";
+    };
+    vaccineSelect.addEventListener("change", syncDose);
+    syncDose();
+}
+</script>
 
 
 </body>

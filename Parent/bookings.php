@@ -139,12 +139,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $stmt = $conn->prepare(
-    "SELECT b.id, c.child_name, v.vaccine_name, v.dose_number,
+    "SELECT b.id, c.child_name, v.vaccine_name,
+            COALESCE(d.dose_number, v.dose_number) AS dose_number,
             h.hospital_name, h.city, b.booking_date, b.booking_time,
             b.status
      FROM bookings b
      JOIN children c ON c.id = b.child_id
      JOIN vaccines v ON v.id = b.vaccine_id
+     LEFT JOIN vaccine_doses d ON d.id = b.vaccine_dose_id
      JOIN hospitals h ON h.id = b.hospital_id
      WHERE b.parent_id = ?
      ORDER BY b.booking_date DESC, b.booking_time DESC"

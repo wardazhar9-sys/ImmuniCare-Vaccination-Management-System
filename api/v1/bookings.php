@@ -7,11 +7,14 @@ $user = api_user($conn);
 $user_id = (int)$user['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $sql = "SELECT b.id, c.child_name, v.vaccine_name, h.hospital_name,
+        $sql = "SELECT b.id, c.child_name, v.vaccine_name,
+                       COALESCE(d.dose_number, v.dose_number) AS dose_number,
+                       b.vaccine_dose_id, h.hospital_name,
                    b.booking_date, b.booking_time, b.status
             FROM bookings b
             JOIN children c ON c.id = b.child_id
             JOIN vaccines v ON v.id = b.vaccine_id
+            LEFT JOIN vaccine_doses d ON d.id = b.vaccine_dose_id
             JOIN hospitals h ON h.id = b.hospital_id";
 
     if ($user['role'] === 'parent') {
@@ -55,7 +58,8 @@ $result = create_booking_workflow(
     (int)($input['hospital_id'] ?? 0),
     (string)($input['booking_date'] ?? ''),
     (string)($input['booking_time'] ?? ''),
-    (int)($input['slot_id'] ?? 0)
+    (int)($input['slot_id'] ?? 0),
+    (int)($input['vaccine_dose_id'] ?? 0)
 );
 
 if (!$result['ok']) {

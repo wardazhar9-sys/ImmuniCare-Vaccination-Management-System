@@ -250,7 +250,8 @@ $sql = "
         u.email AS parent_email,
 
         v.vaccine_name,
-        v.dose_number
+        vs.vaccine_dose_id,
+        COALESCE(d.dose_number, v.dose_number) AS dose_number
 
     FROM vaccination_schedules vs
 
@@ -262,6 +263,9 @@ $sql = "
 
     INNER JOIN vaccines v
         ON vs.vaccine_id = v.id
+
+    LEFT JOIN vaccine_doses d
+        ON d.id = vs.vaccine_dose_id
 
     WHERE 1=1
 ";
