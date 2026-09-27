@@ -19,7 +19,7 @@ http://127.0.0.1:8080
 
 The launcher starts MySQL, creates the database, applies migrations, loads demo data, and starts the website.
 
-### Demo accounts
+### Sample accounts
 
 All demo accounts use:
 
@@ -27,11 +27,11 @@ All demo accounts use:
 Password: TestPassword123!
 ```
 
-- Admin: `demo.admin@immunicare.local`
-- Parent 1: `demo.parent1@immunicare.local`
-- Parent 2: `demo.parent2@immunicare.local`
-- Hospital Alpha: `demo.hospital.alpha@immunicare.local`
-- Hospital Beta: `demo.hospital.beta@immunicare.local`
+- Admin ImmuniCare Admin: `sana.ahmed@immunicare.local`
+- Parent Ayesha Khan: `ayesha.khan@immunicare.local`
+- Parent Muhammad Ali: `muhammad.ali@immunicare.local`
+- Aga Khan University Hospital: `aga.khan@immunicare.local`
+- Liaquat National Hospital: `liaquat.national@immunicare.local`
 
 ## How the system works
 
@@ -505,7 +505,7 @@ The notification bell is available on every admin page.
 
 ---
 
-## Demo cases to show
+## Karachi sample cases to show
 
 Use the demo accounts to show:
 

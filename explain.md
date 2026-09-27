@@ -1375,11 +1375,11 @@ CSV exports are generated from prepared queries and recorded in the admin audit 
 
 ---
 
-## 19. Demo scenario data
+## 19. Karachi sample scenario data
 
-The migration `005_demo_scenario_data.sql` creates a repeatable local demo dataset. It rebuilds only accounts and operational rows belonging to the `demo.*@immunicare.local` users, while preserving unrelated valid data.
+The migrations `005_demo_scenario_data.sql` and `006_karachi_sample_names.sql` create linked local sample data and use realistic Karachi names. The sample records are isolated from unrelated valid data.
 
-All demo accounts use:
+All sample accounts use:
 
 ```text
 Password: TestPassword123!
@@ -1387,13 +1387,13 @@ Password: TestPassword123!
 
 Accounts:
 
-- `demo.admin@immunicare.local`
-- `demo.parent1@immunicare.local`
-- `demo.parent2@immunicare.local`
-- `demo.hospital.alpha@immunicare.local`
-- `demo.hospital.beta@immunicare.local`
+- `sana.ahmed@immunicare.local`
+- `ayesha.khan@immunicare.local`
+- `muhammad.ali@immunicare.local`
+- `aga.khan@immunicare.local`
+- `liaquat.national@immunicare.local`
 
-The demo includes:
+The sample includes:
 
 - a fully vaccinated child with three completed Polio doses;
 - a child with a previous dose and a scheduled next dose;
@@ -1413,4 +1413,4 @@ Run the normal launcher after applying or updating the code:
 setup\start-xampp.bat
 ```
 
-The migration runner applies the demo migration once. Re-running it refreshes only the demo-owned scenario records.
+The migration runner applies the sample migrations once. Re-running them refreshes only the sample-owned scenario records.
